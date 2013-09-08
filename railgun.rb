@@ -5,13 +5,16 @@ require "logger"
 require_relative "./lib/net/anidbudp.rb"
 require_relative "./lib/options.rb"
 require_relative "./lib/processor.rb"
+require_relative "./lib/helpers.rb"
 
 
 log = Logger.new(STDOUT)
+log.level = Logger::INFO
 
 proc = Processor.new
 
 opts = Options.new
+opts.load_config(File.expand_path("../config.yaml", __FILE__))
 opts.parse!(ARGV)
 
 # Get the options from ARGV
@@ -19,33 +22,22 @@ options = opts.options
 
 log.level = options[:logging][:level]
 
-proc.testmode = options[:renamer][:testmode]
+proc.testmode = options[:testmode]
 proc.animebase = options[:renamer][:animebase]
 proc.moviebase = options[:renamer][:moviebase]
 
-# proc.anidb_server = options[:anidb][:server]
-# proc.anidb_port = options[:anidb][:port]
-# proc.anidb_remoteport = options[:anidb][:remoteport]
-# proc.anidb_username = options[:anidb][:username]
-# proc.anidb_password = options[:anidb][:password]
-# proc.anidb_nat = options[:anidb][:nat]
+proc.anidb_server = options[:anidb][:server]
+proc.anidb_port = options[:anidb][:port]
+proc.anidb_remoteport = options[:anidb][:remoteport]
+proc.anidb_username = options[:anidb][:username]
+proc.anidb_password = options[:anidb][:password]
+proc.anidb_nat = options[:anidb][:nat]
 
 # TODO: Change this when I make the logging static
 proc.log = log
 
-
-log.debug "WE DEBUGGING NOW!"
-log.debug options.to_s
-
-exit
-
-def truncate(s, length = 30, ellipsis = '…')
-	if s.length > length
-		s.to_s[0..length].gsub(/[^\w]\w+\s*$/, ellipsis)
-	else
-		s
-	end
-end
+log.debug "DEBUGGING ONLINE!"
+log.debug "Options: #{options.to_s}"
 
 SPECIAL_MAP = {
 	"S" => "S",

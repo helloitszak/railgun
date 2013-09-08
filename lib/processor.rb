@@ -109,6 +109,9 @@ class Processor
 				@log.debug("[P] Processing #{File.basename(file[:src][:file])}")
 				renamed_file = @renamer.call(file[:file])
 
+
+				puts @testmode
+				
 				if @testmode
 					@log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
 				else

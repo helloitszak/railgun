@@ -1,5 +1,8 @@
 require "optparse"
 require "logger"
+require "yaml"
+require_relative './helpers.rb'
+
 class Options
 	attr_reader :options
 
@@ -22,6 +25,11 @@ class Options
 		@options[:renamer][:moviebase] = nil
 
 		@options[:anidb] = {}
+	end
+
+	def load_config(file)
+		config = YAML.load(File.read(file)).deep_symbolize_keys
+		@options.deep_merge!(config)
 	end
 
 	def parse!(args)
