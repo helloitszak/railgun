@@ -1,0 +1,11 @@
+anidb:
+	server: api.anidb.net
+	port: 9000
+	remoteport: 9001
+	username: testuser
+	password: testpass
+	nat: true
+
+renamer:
+	animebase: /home/Ubercow/Movies/Anime
+	moviebase: /home/Ubercow/Movies/OVA
