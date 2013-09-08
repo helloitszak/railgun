@@ -39,20 +39,20 @@ class Processor
 		process_queue = Queue.new
 
 		if @testmode
-			@log.info("[#] Running in test mode. Files won't be renamed.")
+			Logger.log.info("[#] Running in test mode. Files won't be renamed.")
 		end
 
 		# setup ed2k hash worker
 		ed2k_worker = Thread.new do
 			# Go forever while we have stuff to process
 			while true
-				@log.debug("[H] Waiting for next file to hash")
+				Logger.log.debug("[H] Waiting for next file to hash")
 				file = ed2k_queue.pop
 				break unless file
-				@log.debug("[H] Hashing #{File.basename(file)}")
+				Logger.log.debug("[H] Hashing #{File.basename(file)}")
 				size, hash = Net::AniDBUDP.ed2k_file_hash(file)
 				info_queue << { :size => size, :hash => hash, :file => file }
-				@log.info("[H] #{File.basename(file)} (H: #{hash}, S: #{size})")
+				Logger.log.info("[H] #{File.basename(file)} (H: #{hash}, S: #{size})")
 			end
 
 			# Tell the next processor that we're done sending it things
@@ -65,16 +65,16 @@ class Processor
 			anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
 
 			while true
-				@log.debug("[I] Waiting for next file to get info")
+				Logger.log.debug("[I] Waiting for next file to get info")
 				src = info_queue.pop
 				break unless src
-				@log.debug("[I] Searching #{File.basename(src[:file])}")
+				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
 				file = anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
 				if file.nil?
-					@log.warn("[I] #{src} can't be found. Skipping.")
+					Logger.log.warn("[I] #{src} can't be found. Skipping.")
 					next
 				end
-				@log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
+				Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
 
 
 				# Extract the states variable into something more sane
@@ -93,7 +93,7 @@ class Processor
 				# Uncomment for debugging
 				#pp file
 				process_queue << {:src => src, :file => file}
-				@log.debug("[I] Added #{File.basename(src[:file])} to process queue")
+				Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
 			end
 
 			anidb.logout
@@ -103,17 +103,17 @@ class Processor
 		process_worker = Thread.new do
 			# All that's left is to rename or print
 			while true
-				@log.debug("[P] Waiting for next file to process")
+				Logger.log.debug("[P] Waiting for next file to process")
 				file = process_queue.pop
 				break unless file
-				@log.debug("[P] Processing #{File.basename(file[:src][:file])}")
+				Logger.log.debug("[P] Processing #{File.basename(file[:src][:file])}")
 				renamed_file = @renamer.call(file[:file])
 
 
 				puts @testmode
 				
 				if @testmode
-					@log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
+					Logger.log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
 				else
 					basepath = File.dirname(file[:src][:file])
 
@@ -129,18 +129,18 @@ class Processor
 					end
 
 					FileUtils.mv(file[:src][:file], "#{basepath}/#{renamed_file}")
-					@log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
+					Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
 				end
 				#pp file
 			end
 		end
 
-		@log.info("Workers are up and waiting. Let's give them some work.")
+		Logger.log.info("Workers are up and waiting. Let's give them some work.")
 
 		files.each do |file|
 			if File.file?(file)
 				ed2k_queue << file
-				@log.info("[F] Added #{file} to queue")
+				Logger.log.info("[F] Added #{file} to queue")
 			end
 		end
 

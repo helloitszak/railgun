@@ -6,10 +6,9 @@ require_relative "./lib/net/anidbudp.rb"
 require_relative "./lib/options.rb"
 require_relative "./lib/processor.rb"
 require_relative "./lib/helpers.rb"
+require_relative "./lib/logger.rb"
 
-
-log = Logger.new(STDOUT)
-log.level = Logger::INFO
+Logger.setup(STDOUT)
 
 proc = Processor.new
 
@@ -20,7 +19,7 @@ opts.parse!(ARGV)
 # Get the options from ARGV
 options = opts.options
 
-log.level = options[:logging][:level]
+Logger.log.level = options[:logging][:level]
 
 proc.testmode = options[:testmode]
 proc.animebase = options[:renamer][:animebase]
@@ -33,11 +32,8 @@ proc.anidb_username = options[:anidb][:username]
 proc.anidb_password = options[:anidb][:password]
 proc.anidb_nat = options[:anidb][:nat]
 
-# TODO: Change this when I make the logging static
-proc.log = log
-
-log.debug "DEBUGGING ONLINE!"
-log.debug "Options: #{options.to_s}"
+Logger.log.debug "DEBUGGING ONLINE!"
+Logger.log.debug "Options: #{options.to_s}"
 
 SPECIAL_MAP = {
 	"S" => "S",
@@ -106,4 +102,4 @@ end
 # Make sure ARGV is all files, expand paths and get sizes
 proc.process(ARGV)
 
-log.info("Railgun is done! Shutting down. ビリビリ.")
+Logger.log.info("Railgun is done! Shutting down. ビリビリ.")
