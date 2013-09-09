@@ -2,12 +2,19 @@
 # encoding: UTF-8
 
 require "logger"
+require "bundler"
+Bundler.setup(:default)
+require "active_record"
+
 require_relative "./lib/net/anidbudp.rb"
 require_relative "./lib/options.rb"
 require_relative "./lib/processor.rb"
 require_relative "./lib/helpers.rb"
 require_relative "./lib/logger.rb"
 
+Dir[File.dirname(__FILE__) + '/lib/db/*.rb'].each {|file| require file }
+
+# TODO: Add ability to pick log destination.
 Logger.setup(STDOUT)
 
 proc = Processor.new
@@ -31,6 +38,10 @@ proc.anidb_remoteport = options[:anidb][:remoteport]
 proc.anidb_username = options[:anidb][:username]
 proc.anidb_password = options[:anidb][:password]
 proc.anidb_nat = options[:anidb][:nat]
+
+# Connect to database
+ActiveRecord::Base.establish_connection(options[:database])
+ActiveRecord::Base.logger = Logger.log
 
 Logger.log.debug "DEBUGGING ONLINE!"
 Logger.log.debug "Options: #{options.to_s}"

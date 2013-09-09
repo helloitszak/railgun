@@ -1,4 +1,5 @@
 # encoding: UTF-8
+# TODO: If we are using active_record, why not use active_support.
 class Hash
 	def deep_transform_keys(&block)
 		result = {}

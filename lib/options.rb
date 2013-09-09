@@ -24,6 +24,8 @@ class Options
 		@options[:renamer][:animebase] = nil
 		@options[:renamer][:moviebase] = nil
 
+		@options[:database] = {}
+
 		@options[:anidb] = {}
 	end
 
