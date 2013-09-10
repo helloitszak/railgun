@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'thread'
 class Processor
-	attr_accessor :log, :testmode, :animebase, :moviebase
+	attr_accessor :log, :testmode, :animebase, :moviebase, :backlog_set
 	attr_accessor :anidb_server, :anidb_port, :anidb_remoteport, :anidb_username, :anidb_password, :anidb_nat
 	attr_reader :renamer
 
@@ -120,8 +120,32 @@ class Processor
 						basepath = @moviebase
 					end
 
-					FileUtils.mv(file[:src][:file], "#{basepath}/#{renamed_file}")
-					Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
+					finalpath = File.expand_path("#{basepath}/#{renamed_file}")
+
+					# TODO: Gracefully fail on a failed rename, especially if src == dest
+					begin
+						if file[:src][:file] != finalpath
+							FileUtils.mv(file[:src][:file], finalpath)
+							Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
+						else
+							Logger.log.warn("[P] #{File.basename(file[:src][:file])} was not renamed to itself.")
+						end
+					rescue
+						Logger.log.error("[P] Could not rename #{file[:src][:file]}")
+						Logger.log.debug($!)
+					end
+
+					if @backlog_set
+						backlog = Backlog.where(path: finalpath).first_or_create
+						if backlog.added.nil?
+							backlog.added = DateTime.now
+						end
+
+						backlog.expire = @backlog_set
+
+						backlog.save
+						Logger.log.info("[P] Added backlog for #{renamed_file} to expire on #{@backlog_set}")
+					end
 				end
 			end
 		end
@@ -134,6 +158,7 @@ class Processor
 	end
 
 	def process(files)
+		files = [files] if files.is_a? String
 		files.each do |file|
 			if File.file?(file)
 				@ed2k_queue << file
@@ -144,8 +169,6 @@ class Processor
 
 	def teardown
 		@ed2k_queue << nil
-		@info_queue << nil
-		@process_queue << nil
 		[@ed2k_worker, @info_worker, @process_worker].each(&:join)
 	end
 end

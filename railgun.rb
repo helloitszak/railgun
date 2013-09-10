@@ -39,17 +39,20 @@ proc.anidb_username = options[:anidb][:username]
 proc.anidb_password = options[:anidb][:password]
 proc.anidb_nat = options[:anidb][:nat]
 
+proc.backlog_set = options[:backlog][:set]
 
 Logger.log.debug "DEBUGGING ONLINE!"
 
-Logger.log.debug "Connecting to Database"
-# Connect to database
-ActiveRecord::Base.establish_connection(options[:database])
-ActiveRecord::Base.logger = Logger.log
+if options[:backlog][:run] or options[:backlog][:set]
+	Logger.log.debug "Connecting to Database"
+	# Connect to database
+	ActiveRecord::Base.establish_connection(options[:database])
+	ActiveRecord::Base.logger = Logger.log
+end
 
 Logger.log.debug "Options: #{options.to_s}"
 
-
+# Start up the Processor Queues
 proc.setup
 
 SPECIAL_MAP = {
@@ -115,10 +118,18 @@ proc.renamer do |file|
 	end
 end
 
-# Now that the workers are setup, kick off the actual process
-# Make sure ARGV is all files, expand paths and get sizes
-proc.process(ARGV)
+if options[:backlog][:run]
+	Logger.log.info("Processing Backlog")
+	Backlog.where("expire > ?", Time.now).each do |backlog|
+		proc.process(backlog.path)
+		backlog.update(runs: backlog.runs + 1)
+	end
+end
 
+if not ARGV.empty?
+	Logger.log.info("Processing command line files")
+	proc.process(ARGV)
+end
 
 proc.teardown
 
