@@ -39,11 +39,14 @@ proc.anidb_username = options[:anidb][:username]
 proc.anidb_password = options[:anidb][:password]
 proc.anidb_nat = options[:anidb][:nat]
 
+
+Logger.log.debug "DEBUGGING ONLINE!"
+
+Logger.log.debug "Connecting to Database"
 # Connect to database
 ActiveRecord::Base.establish_connection(options[:database])
 ActiveRecord::Base.logger = Logger.log
 
-Logger.log.debug "DEBUGGING ONLINE!"
 Logger.log.debug "Options: #{options.to_s}"
 
 SPECIAL_MAP = {

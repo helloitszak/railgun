@@ -1,6 +1,7 @@
 require "optparse"
 require "logger"
 require "yaml"
+require "chronic"
 require_relative './helpers.rb'
 
 class Options
@@ -23,6 +24,10 @@ class Options
 		@options[:renamer] = {}
 		@options[:renamer][:animebase] = nil
 		@options[:renamer][:moviebase] = nil
+
+		@options[:backlog] = {}
+		@options[:backlog][:run] = false 
+		@options[:backlog][:set] = false
 
 		@options[:database] = {}
 
@@ -56,6 +61,23 @@ class Options
 
 			opts.on("--loglevel [LEVEL]", DEBUG_MAP.keys, "Sets logging to LEVEL") do |debug|
 				options[:logging][:level] = DEBUG_MAP[debug]
+			end
+
+			opts.on("--setbacklog [DATE]", "Adds to the backlog to expire at DATE using Chronic") do |date|
+				options[:backlog][:set] = Chronic.parse(date)
+				unless options[:backlog][:set]
+					puts "Invaid setbacklog expire time."
+					exit
+				end
+
+				unless options[:backlog][:set] > Time.now
+					puts "Expire time can't be in the past."
+					exit
+				end
+			end
+
+			opts.on("--runbacklog", "Runs the backlog") do |backlog|
+				options[:backlog][:run] = backlog
 			end
 
 			opts.on_tail("-h", "--help", "Show this message") do
