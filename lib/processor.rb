@@ -3,7 +3,7 @@ require 'thread'
 class Processor
 	attr_accessor :log, :testmode, :animebase, :moviebase, :backlog_set
 	attr_accessor :anidb_server, :anidb_port, :anidb_remoteport, :anidb_username, :anidb_password, :anidb_nat
-	attr_reader :renamer
+	attr_accessor :renamer
 
 	FILE_FFIELDS = [ :aid, :eid, :gid, :length, :quality, :video_resolution,
 	                 :source, :sub_language, :dub_language, :video_codec,
@@ -26,6 +26,12 @@ class Processor
 		:version4 => 4,
 		:version5 => 5
 	}
+
+	class Renamer
+		def self.rename(file)
+			raise NotImplementedError
+		end
+	end
 
 	def setup
 		# setup queues
@@ -102,7 +108,8 @@ class Processor
 				file = @process_queue.pop
 				break unless file
 				Logger.log.debug("[P] Processing #{File.basename(file[:src][:file])}")
-				renamed_file = @renamer.call(file[:file])
+				
+				renamed_file = @renamer.rename(file[:file])
 
 				if @testmode
 					Logger.log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
