@@ -27,46 +27,41 @@ class Processor
 		:version5 => 5
 	}
 
-	def renamer(&block)
-		@renamer = block
-	end
-
-
-	def process(files)
+	def setup
 		# setup queues
-		ed2k_queue = Queue.new
-		info_queue = Queue.new
-		process_queue = Queue.new
+		@ed2k_queue = Queue.new
+		@info_queue = Queue.new
+		@process_queue = Queue.new
 
 		if @testmode
 			Logger.log.info("[#] Running in test mode. Files won't be renamed.")
 		end
 
 		# setup ed2k hash worker
-		ed2k_worker = Thread.new do
+		@ed2k_worker = Thread.new do
 			# Go forever while we have stuff to process
 			while true
 				Logger.log.debug("[H] Waiting for next file to hash")
-				file = ed2k_queue.pop
+				file = @ed2k_queue.pop
 				break unless file
 				Logger.log.debug("[H] Hashing #{File.basename(file)}")
 				size, hash = Net::AniDBUDP.ed2k_file_hash(file)
-				info_queue << { :size => size, :hash => hash, :file => file }
+				@info_queue << { :size => size, :hash => hash, :file => file }
 				Logger.log.info("[H] #{File.basename(file)} (H: #{hash}, S: #{size})")
 			end
 
 			# Tell the next processor that we're done sending it things
-			info_queue << nil
+			@info_queue << nil
 		end
 
-		info_worker = Thread.new do
+		@info_worker = Thread.new do
 			# TODO: Extract this shit to a config file
 			anidb = Net::AniDBUDP.new(@anidb_server, @anidb_port, @anidb_remoteport)
 			anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
 
 			while true
 				Logger.log.debug("[I] Waiting for next file to get info")
-				src = info_queue.pop
+				src = @info_queue.pop
 				break unless src
 				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
 				file = anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
@@ -92,26 +87,23 @@ class Processor
 
 				# Uncomment for debugging
 				#pp file
-				process_queue << {:src => src, :file => file}
+				@process_queue << {:src => src, :file => file}
 				Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
 			end
 
 			anidb.logout
-			process_queue << nil
+			@process_queue << nil
 		end
 
-		process_worker = Thread.new do
+		@process_worker = Thread.new do
 			# All that's left is to rename or print
 			while true
 				Logger.log.debug("[P] Waiting for next file to process")
-				file = process_queue.pop
+				file = @process_queue.pop
 				break unless file
 				Logger.log.debug("[P] Processing #{File.basename(file[:src][:file])}")
 				renamed_file = @renamer.call(file[:file])
 
-
-				puts @testmode
-				
 				if @testmode
 					Logger.log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
 				else
@@ -131,21 +123,29 @@ class Processor
 					FileUtils.mv(file[:src][:file], "#{basepath}/#{renamed_file}")
 					Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
 				end
-				#pp file
 			end
 		end
 
-		Logger.log.info("Workers are up and waiting. Let's give them some work.")
+		Logger.log.info("Workers are up and waiting.")
+	end
 
+	def renamer(&block)
+		@renamer = block
+	end
+
+	def process(files)
 		files.each do |file|
 			if File.file?(file)
-				ed2k_queue << file
+				@ed2k_queue << file
 				Logger.log.info("[F] Added #{file} to queue")
 			end
 		end
+	end
 
-		ed2k_queue << nil
-
-		[ed2k_worker, info_worker, process_worker].each(&:join)
+	def teardown
+		@ed2k_queue << nil
+		@info_queue << nil
+		@process_queue << nil
+		[@ed2k_worker, @info_worker, @process_worker].each(&:join)
 	end
 end

@@ -49,6 +49,9 @@ ActiveRecord::Base.logger = Logger.log
 
 Logger.log.debug "Options: #{options.to_s}"
 
+
+proc.setup
+
 SPECIAL_MAP = {
 	"S" => "S",
 	"C" => "S1",
@@ -115,5 +118,8 @@ end
 # Now that the workers are setup, kick off the actual process
 # Make sure ARGV is all files, expand paths and get sizes
 proc.process(ARGV)
+
+
+proc.teardown
 
 Logger.log.info("Railgun is done! Shutting down. ビリビリ.")
