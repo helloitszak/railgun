@@ -59,5 +59,7 @@ class XbmcRenamer < Processor::Renamer
 			# Process episodic
 			[show_title, fullepno, episode_title, fileinfo, ".", file[:file][:file_type]] * ""
 		end
+
+		fullfile
 	end
 end
