@@ -61,7 +61,6 @@ class Processor
 		end
 
 		@info_worker = Thread.new do
-			# TODO: Extract this shit to a config file
 			anidb = Net::AniDBUDP.new(@anidb_server, @anidb_port, @anidb_remoteport)
 			anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
 
@@ -129,7 +128,6 @@ class Processor
 
 					finalpath = File.expand_path("#{basepath}/#{renamed_file}")
 
-					# TODO: Gracefully fail on a failed rename, especially if src == dest
 					begin
 						if file[:src][:file] != finalpath
 							FileUtils.mv(file[:src][:file], finalpath)
