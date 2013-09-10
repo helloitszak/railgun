@@ -2,6 +2,7 @@ require "optparse"
 require "logger"
 require "yaml"
 require "chronic"
+require "active_support/core_ext/hash"
 require_relative './helpers.rb'
 
 class Options

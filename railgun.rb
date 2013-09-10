@@ -71,6 +71,7 @@ if not ARGV.empty?
 	proc.process(ARGV)
 end
 
+# This blocks until the queues are done.
 proc.teardown
 
 Logger.log.info("Railgun is done! Shutting down. ビリビリ.")

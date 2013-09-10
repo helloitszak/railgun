@@ -22,7 +22,7 @@ class XbmcRenamer < Processor::Renamer
 		episode_title.gsub!(/\s+/, " ")
 		episode_title.gsub!(/^\s|\s$/, "")
 		episode_title.gsub!(/`/, "'")
-		episode_title = truncate(episode_title, 64)
+		episode_title = Helpers.truncate(episode_title, 64)
 
 		# Episode Number
 		regular = ""
