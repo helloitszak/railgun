@@ -1,3 +1,4 @@
+require "processor"
 class XbmcRenamer < Processor::Renamer
 	SPECIAL_MAP = {
 		"S" => "S",

@@ -6,45 +6,31 @@ require "bundler"
 Bundler.setup(:default)
 require "active_record"
 
-require_relative "./lib/net/anidbudp.rb"
-require_relative "./lib/options.rb"
-require_relative "./lib/processor.rb"
-require_relative "./lib/helpers.rb"
-require_relative "./lib/logger.rb"
-require_relative "./lib/renamers/xbmc_renamer.rb"
+$:.unshift File.dirname(__FILE__) + "/lib"
+
+require "net/anidbudp"
+require "options"
+require "helpers"
+require "logger_ext"
+require "railgun"
 
 Dir[File.dirname(__FILE__) + '/lib/db/*.rb'].each {|file| require file }
 
 # TODO: Add ability to pick log destination.
 Logger.setup(STDOUT)
 
-proc = Processor.new
-
+# Load options from config and ARGV
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 opts.parse!(ARGV)
-
-# Get the options from ARGV
 options = opts.options
 
+# Get logging online
 Logger.log.level = options[:logging][:level]
-
-proc.testmode = options[:testmode]
-proc.animebase = options[:renamer][:animebase]
-proc.moviebase = options[:renamer][:moviebase]
-
-proc.anidb_server = options[:anidb][:server]
-proc.anidb_port = options[:anidb][:port]
-proc.anidb_remoteport = options[:anidb][:remoteport]
-proc.anidb_username = options[:anidb][:username]
-proc.anidb_password = options[:anidb][:password]
-proc.anidb_nat = options[:anidb][:nat]
-
-proc.renamer = XbmcRenamer
-
-proc.backlog_set = options[:backlog][:set]
-
 Logger.log.debug "DEBUGGING ONLINE!"
+
+# Setup Railgun which handles renaming
+railgun = Railgun.new(options)
 
 if options[:backlog][:run] or options[:backlog][:set]
 	Logger.log.debug "Connecting to Database"
@@ -55,23 +41,20 @@ end
 
 Logger.log.debug "Options: #{options.to_s}"
 
-# Start up the Processor Queues
-proc.setup
-
 if options[:backlog][:run]
 	Logger.log.info("Processing Backlog")
 	Backlog.where("expire > ?", Time.now).each do |backlog|
-		proc.process(backlog.path)
+		railgun.process(backlog.path)
 		backlog.update(runs: backlog.runs + 1)
 	end
 end
 
 if not ARGV.empty?
 	Logger.log.info("Processing command line files")
-	proc.process(ARGV)
+	railgun.process(ARGV)
 end
 
 # This blocks until the queues are done.
-proc.teardown
+railgun.teardown
 
 Logger.log.info("Railgun is done! Shutting down. ビリビリ.")

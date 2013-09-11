@@ -158,10 +158,6 @@ class Processor
 		Logger.log.info("Workers are up and waiting.")
 	end
 
-	def renamer(&block)
-		@renamer = block
-	end
-
 	def process(files)
 		files = [files] if files.is_a? String
 		files.each do |file|
