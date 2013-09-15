@@ -166,7 +166,8 @@ elsif ARGV[0] == "cron"
 			FileUtils.rm_r("#{torrent["downloadDir"]}/#{torrent["name"]}")		
 
 			# Remove hash from database so torrent can be redownloaded again
-			Logger.log.info("Removed #{torrent["hashString"]} from database")		
+			Logger.log.info("Removed #{torrent["hashString"]} from database")
+			tc.destroy(torrent["hashString"])
 			trow.destroy
 		end
 	end
