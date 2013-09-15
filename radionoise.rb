@@ -134,8 +134,8 @@ elsif ARGV[0] == "cron"
 	Logger.log.info("Copying all \"done\" and \"uncopied\" torrents")
 	donetorrents = tc.all.select { |torrent| torrent["percentDone"] == 1 and not torrent["downloadDir"].scan(/anime/).empty? }
 	donetorrents.each do |torrent|
-		torrent = Torrents.find_by hash_string: torrent["hashString"]
-		if torrent.nil? or torrent.copied? == false
+		trow = Torrents.find_by hash_string: torrent["hashString"]
+		if trow.nil? or trow.copied? == false
 			# hahaha what the fuck is DRY
 			# Copy the file to "Unsorted" folder
 			fullpath = torrent["downloadDir"] + "/" + torrent["name"]
@@ -149,8 +149,8 @@ elsif ARGV[0] == "cron"
 			allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD)
 			files = allglob.select { |f| File.file?(f) }
 			railgun.process(files)
-			torrent.copied = true
-			torrent.save
+			trow.copied = true
+			trow.save
 		end
 	end
 
@@ -160,14 +160,14 @@ elsif ARGV[0] == "cron"
 		(torrent["isFinished"] == true or torrent["status"] == 0) and not torrent["downloadDir"].scan(/anime/).empty?
 	end
 	completedtorrents.each do |torrent|
-		torrent = Torrents.find_by hash_string: torrent["hashString"]
-		if torrent.copied?
+		trow = Torrents.find_by hash_string: torrent["hashString"]
+		if trow.copied?
 			Logger.log.info("Removed #{torrent["downloadDir"]}/#{torrent["name"]}")
 			FileUtils.rm_r("#{torrent["downloadDir"]}/#{torrent["name"]}")		
 
 			# Remove hash from database so torrent can be redownloaded again
 			Logger.log.info("Removed #{torrent["hashString"]} from database")		
-			torrent.destroy
+			trow.destroy
 		end
 	end
 end
