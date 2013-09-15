@@ -107,12 +107,12 @@ if ARGV[0] == "add"
 	globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
 	globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
 	allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{mkv,mp4,avi}", File::FNM_CASEFOLD)
-	allglob.each do |path|
+	allglob.select { |f| File.file?(f) }.each do |path|
 		puts path
 	end
 
 	# Add hash to torrents tabled, marking copied = true
-	dbrow = Torrents.where(hash: torrent["hashString"]).first_or_create
+	dbrow = Torrents.where(hash_string: torrent["hashString"]).first_or_create
 	dbrow.name = torrent["name"]
 	dbrow.copied = true
 	dbrow.save
