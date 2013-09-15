@@ -27,6 +27,8 @@ STATUS_MAP = {
 	6 => "seeding"
 }
 
+GLOB_FILETYPES = "mkv,avi,mp4"
+
 # Only allow add and cron modes, this script really shouldn't be called
 # from a person so it's quite unfriendly
 unless ["add", "cron"].include? ARGV[0]
@@ -106,23 +108,66 @@ if ARGV[0] == "add"
 	Logger.log.info("Copied #{fullpath} to #{options[:renamer][:unsorted]}")	
 
 	# Glob and run "Railgun" on it
+	Logger.log.info("Running Railgun on Torrent")
 	globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
 	globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
-	allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{mkv,mp4,avi}", File::FNM_CASEFOLD)
+	allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD)
 	files = allglob.select { |f| File.file?(f) }
 	railgun.process(files)
 
 	# Add hash to torrents tabled, marking copied = true
+	Logger.log.info("Marking torrent as done")
 	dbrow = Torrents.where(hash_string: torrent["hashString"]).first_or_create
 	dbrow.name = torrent["name"]
 	dbrow.copied = true
 	dbrow.save
 
 elsif ARGV[0] == "cron"
-	# Run Railgun on all video files in "Unsorted" folder
+	# Run Railgun on all video files in "Unsorted" folder (this catches files never had info)
+	Logger.log.info("Processing #{options[:renamer][:unsorted]}")
+	globpath = options[:renamer][:unsorted]
+	globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
+	files = Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD).select { |f| File.file?(f) }
+	railgun.process(files)
+
 	# Copy any torrent that's done and not copied to "Unsorted" folder
+	Logger.log.info("Copying all \"done\" and \"uncopied\" torrents")
+	donetorrents = tc.all.select { |torrent| torrent["percentDone"] == 1 }
+	donetorrents.each do |torrent|
+		torrent = Torrent.find_by hash_string: torrent["hashString"]
+		if torrent.nil? or torrent.copied? == false
+			# hahaha what the fuck is DRY
+			# Copy the file to "Unsorted" folder
+			fullpath = torrent["downloadDir"] + "/" + torrent["name"]
+			FileUtils.cp_r(fullpath, options[:renamer][:unsorted])
+			Logger.log.info("Copied #{fullpath} to #{options[:renamer][:unsorted]}")	
+
+			# Glob and run "Railgun" on it
+			Logger.log.info("Running Railgun on Torrent")
+			globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
+			globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
+			allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD)
+			files = allglob.select { |f| File.file?(f) }
+			railgun.process(files)
+			torrent.copied = true
+			torrent.save
+		end
+	end
+
 	# Delete any torrent that's "completed" and "copied"
-	# Remove hash from database so torrent can be redownloaded again
+	Logger.log.info("Deleting \"completed\" and \"copied\" torrents")
+	completedtorrents = tc.all.select { |torrent| torrent["isFinished"] == true or torrent["status"] == 0 }
+	completedtorrents.each do |torrent|
+		torrent = Torrents.find_by hash_string: torrent["hashString"]
+		if torrent.copied?
+			Logger.log.info("Removed #{torrent["downloadDir"]}/#{torrent["name"]}")
+			FileUtils.rm_r("#{torrent["downloadDir"]}/#{torrent["name"]}")		
+
+			# Remove hash from database so torrent can be redownloaded again
+			Logger.log.info("Removed #{torrent["hashString"]} from database")		
+			torrent.destroy
+		end
+	end
 end
 
 railgun.teardown
