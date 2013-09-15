@@ -130,30 +130,6 @@ elsif ARGV[0] == "cron"
 	files = Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD).select { |f| File.file?(f) }
 	railgun.process(files)
 
-	# Copy any torrent that's done and not copied to "Unsorted" folder
-	Logger.log.info("Copying all \"done\" and \"uncopied\" torrents")
-	donetorrents = tc.all.select { |torrent| torrent["percentDone"] == 1 and not torrent["downloadDir"].scan(/anime/).empty? }
-	donetorrents.each do |torrent|
-		trow = Torrents.find_by hash_string: torrent["hashString"]
-		if trow.nil? or trow.copied? == false
-			# hahaha what the fuck is DRY
-			# Copy the file to "Unsorted" folder
-			fullpath = torrent["downloadDir"] + "/" + torrent["name"]
-			FileUtils.cp_r(fullpath, options[:renamer][:unsorted])
-			Logger.log.info("Copied #{fullpath} to #{options[:renamer][:unsorted]}")	
-
-			# Glob and run "Railgun" on it
-			Logger.log.info("Running Railgun on Torrent")
-			globpath = "#{options[:renamer][:unsorted]}/#{torrent["name"]}"
-			globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
-			allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD)
-			files = allglob.select { |f| File.file?(f) }
-			railgun.process(files)
-			trow.copied = true
-			trow.save
-		end
-	end
-
 	# Delete any torrent that's "completed" and "copied"
 	Logger.log.info("Deleting \"completed\" and \"copied\" torrents")
 	completedtorrents = tc.all.select do |torrent|
@@ -167,7 +143,6 @@ elsif ARGV[0] == "cron"
 
 			# Remove hash from database so torrent can be redownloaded again
 			Logger.log.info("Removed #{torrent["hashString"]} from database")
-			tc.destroy(torrent["hashString"])
 			trow.destroy
 		end
 	end
