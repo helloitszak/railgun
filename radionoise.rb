@@ -42,7 +42,7 @@ Logger.setup(STDOUT)
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 options = opts.options
-options[:backlog][:run] = (DateTime.now + 7)
+options[:backlog][:set] = (DateTime.now + 7)
 
 Logger.log.level = options[:logging][:level]
 
