@@ -3,7 +3,7 @@
 
 require "logger"
 require "bundler"
-Bunder.setup(:default)
+Bundler.setup(:default)
 require "active_record"
 
 $:.unshift File.dirname(__FILE__) + "/lib"
@@ -28,7 +28,7 @@ STATUS_MAP = {
 
 # Only allow add and cron modes, this script really shouldn't be called
 # from a person so it's quite unfriendly
-unless ["add", "cron"].include? ARGV[1]
+unless ["add", "cron"].include? ARGV[0]
 	puts "Usage #{$0} [add|cron]"
 end
 
@@ -52,7 +52,7 @@ tc = TransmissionApi.new(
 tc.fields.push("hashString", "status", "percentDone", "downloadDir")
 tc.fields.delete("files")
 
-Logger.info("Setup Transmission to #{options[:transmission][:url]}")
+Logger.log.info("Setup Transmission to #{options[:transmission][:url]}")
 
 Logger.log.debug "Connecting to Database"
 # Connect to database
@@ -78,11 +78,11 @@ ActiveRecord::Base.logger = Logger.log
 # status => number (see status_map)
 # isFinished => boolean (has reached ratio limit)
 
-if ARGV[1] == "add"
+if ARGV[0] == "add"
 	# Get information on torrent from hash
-	thash = ENV["TR_TORRENT_HASH"] or ARGV[2]
+	thash = (ENV["TR_TORRENT_HASH"] or ARGV[1])
 	unless thash
-		Logger.log.fatal("You must pass a hash in $TR_TORRENT_HASH or ARGV[2]")
+		Logger.log.fatal("You must pass a hash in $TR_TORRENT_HASH or ARGV[1]")
 		exit(1)
 	end
 
@@ -93,18 +93,18 @@ if ARGV[1] == "add"
 	end
 
 	# Check if the Hash is Anime (based on path, set in config)
-	unless torrent.downloadDir.scan(/anime/)
-		Logger.log.fatal("Torrent #{torrent.name} is not anime")
+	unless torrent["downloadDir"].scan(/anime/)
+		Logger.log.fatal("Torrent #{torrent["name"]} is not anime")
 		exit(1)
 	end
 
 	# Copy the file to "Unsorted" folder
-	fullpath = torrent.downloadDir + torrent.name
-	FileUtils.cp_r(filepath, options[:renamer][:unsorted])
-	Logger.log.info("Copied #{filepath} to #{options[:renamer][:unsorted]}")	
+	fullpath = torrent["downloadDir"] + "/" + torrent["name"]
+	FileUtils.cp_r(fullpath, options[:renamer][:unsorted])
+	Logger.log.info("Copied #{fullpath} to #{options[:renamer][:unsorted]}")	
 
 	# Glob and run "Railgun" on it
-	globpath = "#{torrent.downloadDir}/#{torrent.name}"
+	globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
 	globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
 	allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{mkv,mp4,avi}", File::FNM_CASEFOLD)
 	allglob.each do |path|
@@ -112,12 +112,12 @@ if ARGV[1] == "add"
 	end
 
 	# Add hash to torrents tabled, marking copied = true
-	dbrow = Torrents.where(hash: torrent.hashString).first_or_create
-	dbrow.name = torrent.name
+	dbrow = Torrents.where(hash: torrent["hashString"]).first_or_create
+	dbrow.name = torrent["name"]
 	dbrow.copied = true
 	dbrow.save
 
-elsif ARGV[1] == "cron"
+elsif ARGV[0] == "cron"
 	# Run Railgun on all video files in "Unsorted" folder
 	# Copy any torrent that's done and not copied to "Unsorted" folder
 	# Delete any torrent that's "completed" and "copied"
