@@ -132,9 +132,9 @@ elsif ARGV[0] == "cron"
 
 	# Copy any torrent that's done and not copied to "Unsorted" folder
 	Logger.log.info("Copying all \"done\" and \"uncopied\" torrents")
-	donetorrents = tc.all.select { |torrent| torrent["percentDone"] == 1 }
+	donetorrents = tc.all.select { |torrent| torrent["percentDone"] == 1 and not torrent["downloadDir"].scan(/anime/).empty? }
 	donetorrents.each do |torrent|
-		torrent = Torrent.find_by hash_string: torrent["hashString"]
+		torrent = Torrents.find_by hash_string: torrent["hashString"]
 		if torrent.nil? or torrent.copied? == false
 			# hahaha what the fuck is DRY
 			# Copy the file to "Unsorted" folder
@@ -156,7 +156,9 @@ elsif ARGV[0] == "cron"
 
 	# Delete any torrent that's "completed" and "copied"
 	Logger.log.info("Deleting \"completed\" and \"copied\" torrents")
-	completedtorrents = tc.all.select { |torrent| torrent["isFinished"] == true or torrent["status"] == 0 }
+	completedtorrents = tc.all.select do |torrent|
+		(torrent["isFinished"] == true or torrent["status"] == 0) and not torrent["downloadDir"].scan(/anime/).empty?
+	end
 	completedtorrents.each do |torrent|
 		torrent = Torrents.find_by hash_string: torrent["hashString"]
 		if torrent.copied?
