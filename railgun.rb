@@ -8,7 +8,6 @@ require "active_record"
 
 $:.unshift File.dirname(__FILE__) + "/lib"
 
-require "net/anidbudp"
 require "options"
 require "helpers"
 require "logger_ext"
