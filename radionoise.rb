@@ -97,7 +97,7 @@ if ARGV[0] == "add"
 	end
 
 	# Check if the Hash is Anime (based on path, set in config)
-	unless torrent["downloadDir"].scan(/anime/)
+	if torrent["downloadDir"].scan(/anime/).empty?
 		Logger.log.fatal("Torrent #{torrent["name"]} is not anime")
 		exit(1)
 	end
