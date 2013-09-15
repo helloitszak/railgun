@@ -5,6 +5,7 @@ require "logger"
 require "bundler"
 Bundler.setup(:default)
 require "active_record"
+require "date"
 
 $:.unshift File.dirname(__FILE__) + "/lib"
 
@@ -39,6 +40,7 @@ Logger.setup(STDOUT)
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 options = opts.options
+options[:backlog][:run] = (DateTime.now + 7)
 
 Logger.log.level = options[:logging][:level]
 
@@ -107,9 +109,8 @@ if ARGV[0] == "add"
 	globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
 	globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
 	allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{mkv,mp4,avi}", File::FNM_CASEFOLD)
-	allglob.select { |f| File.file?(f) }.each do |path|
-		puts path
-	end
+	files = allglob.select { |f| File.file?(f) }
+	railgun.process(files)
 
 	# Add hash to torrents tabled, marking copied = true
 	dbrow = Torrents.where(hash_string: torrent["hashString"]).first_or_create
