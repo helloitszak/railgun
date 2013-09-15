@@ -5,6 +5,7 @@ gem 'activerecord'
 gem 'sqlite3'
 gem 'chronic'
 gem 'transmission_api'
+gem 'rake'
 
 group :development do
 	gem 'pry'
