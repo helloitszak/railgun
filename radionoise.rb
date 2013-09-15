@@ -109,7 +109,7 @@ if ARGV[0] == "add"
 
 	# Glob and run "Railgun" on it
 	Logger.log.info("Running Railgun on Torrent")
-	globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
+	globpath = "#{options[:renamer][:unsorted]}/#{torrent["name"]}"
 	globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
 	allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD)
 	files = allglob.select { |f| File.file?(f) }
@@ -144,7 +144,7 @@ elsif ARGV[0] == "cron"
 
 			# Glob and run "Railgun" on it
 			Logger.log.info("Running Railgun on Torrent")
-			globpath = "#{torrent["downloadDir"]}/#{torrent["name"]}"
+			globpath = "#{options[:renamer][:unsorted]}/#{torrent["name"]}"
 			globpath.gsub!(/([\[\]\{\}\*\?\\])/, '\\\\\1')
 			allglob = Dir.glob(globpath, File::FNM_CASEFOLD) + Dir.glob(globpath + "/**/*.{#{GLOB_FILETYPES}}", File::FNM_CASEFOLD)
 			files = allglob.select { |f| File.file?(f) }
