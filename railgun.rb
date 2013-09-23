@@ -2,6 +2,9 @@
 # encoding: UTF-8
 
 require "logger"
+
+ENV["BUNDLE_GEMFILE"] = File.dirname(__FILE__) + "/Gemfile"
+
 require "bundler"
 Bundler.setup(:default)
 require "active_record"
@@ -14,6 +17,7 @@ require "logger_ext"
 require "railgun"
 
 Dir[File.dirname(__FILE__) + '/lib/db/*.rb'].each {|file| require file }
+
 
 # TODO: Add ability to pick log destination.
 Logger.setup(STDOUT)
