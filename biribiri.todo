@@ -1,0 +1,11 @@
+New Features:
+  ☐ Standalone application for managing the backlog
+  ☐ Little web server to display statistics and stuff
+  ☐ Allow logging customization
+  ☐ GELF support
+
+Code Refactor:
+  ☐ Don't remove from database, have a "all done" flag
+
+Misc Project:
+  ☐ Add readme and setup guide
