@@ -141,8 +141,9 @@ elsif ARGV[0] == "cron"
 		(torrent["isFinished"] == true or torrent["status"] == 0) and not torrent["downloadDir"].scan(/anime/).empty?
 	end
 	completedtorrents.each do |torrent|
+		Logger.log.debug("Prepping to remove #{torrent["name"]} (#{torrent["hashString"]}) at #{torrent["downloadDir"]}")
 		trow = Torrents.find_by hash_string: torrent["hashString"]
-		if trow.copied?
+		if trow and trow.copied?
 			Logger.log.info("Removed #{torrent["downloadDir"]}/#{torrent["name"]}")
 			FileUtils.rm_r("#{torrent["downloadDir"]}/#{torrent["name"]}")		
 
