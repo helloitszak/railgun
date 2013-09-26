@@ -33,6 +33,8 @@ class Options
 		@options[:database] = {}
 
 		@options[:anidb] = {}
+
+		@options[:radionoise] = {}
 	end
 
 	def load_config(file)

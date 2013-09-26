@@ -1,11 +1,28 @@
 anidb:
-	server: api.anidb.net
-	port: 9000
-	remoteport: 9001
-	username: testuser
-	password: testpass
-	nat: true
+    server: api.anidb.net
+    port: 9000
+    remoteport: 9001
+    username: username
+    password: password
+    nat: true
 
 renamer:
-	animebase: /home/Ubercow/Movies/Anime
-	moviebase: /home/Ubercow/Movies/OVA
+    animebase: /mnt/fileshare/video/Anime
+    moviebase: /mnt/fileshare/video/Anime OVA
+    unsorted: /mnt/fileshare/video/Anime Unsorted
+
+# This is ActiveRecord syntax, supports anything he does.
+# Note that db/*.sqlite3 is excluded from git, so you should use that
+# naming pattern when you are saving your sqlite database to this folder
+database:
+    adapter: sqlite3
+    database: db/database.sqlite3
+
+transmission:
+    url: http://transmission:9091/transmission/rpc
+    username: transmission
+    password: password
+
+# If this isn't specified, radionoise won't add to the backlog
+radionoise:
+    backlog: 3 days from now

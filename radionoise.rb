@@ -2,10 +2,14 @@
 # encoding: UTF-8
 
 require "logger"
+
+ENV["BUNDLE_GEMFILE"] = File.dirname(__FILE__) + "/Gemfile"
+
 require "bundler"
 Bundler.setup(:default)
 require "active_record"
 require "date"
+require "chronic"
 
 $:.unshift File.dirname(__FILE__) + "/lib"
 
@@ -43,7 +47,7 @@ Logger.setup(STDOUT)
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 options = opts.options
-options[:backlog][:set] = (DateTime.now + 7)
+options[:backlog][:set] = Chronic.parse(options[:radionoise][:backlog])
 
 Logger.log.level = options[:logging][:level]
 
