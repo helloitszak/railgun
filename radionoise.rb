@@ -33,6 +33,7 @@ GLOB_FILETYPES = "mkv,avi,mp4"
 # from a person so it's quite unfriendly
 unless ["add", "cron"].include? ARGV[0]
 	puts "Usage #{$0} [add|cron]"
+	exit
 end
 
 # Start Logging
