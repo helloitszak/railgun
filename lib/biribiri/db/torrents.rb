@@ -1,3 +1,3 @@
-class Torrents < ActiveRecord::Base
+class Biribiri::Torrents < ActiveRecord::Base
 	validates :hash_string, uniqueness: true, presence: true
 end

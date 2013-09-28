@@ -1,25 +1,29 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-require "logger"
+#!/usr/bin/env ruby
+# encoding: UTF-8
 
-ENV["BUNDLE_GEMFILE"] = File.dirname(__FILE__) + "/Gemfile"
+APP_ROOT = File.dirname(__FILE__)
+ENV["BUNDLE_GEMFILE"] = APP_ROOT + "/Gemfile"
+$:.unshift APP_ROOT + "/lib"
 
 require "bundler"
 Bundler.setup(:default)
+require "logger"
 require "active_record"
-require "date"
-require "chronic"
+require "biribiri"
+include Biribiri
 
-$:.unshift File.dirname(__FILE__) + "/lib"
+# TODO: Add ability to pick log destination.
+Logger.setup(STDOUT)
 
-require "transmission_api"
-require "options"
-require "helpers"
-require "logger_ext"
-require "railgun"
-require "db/backlog"
-require "db/torrents"
+# Load options from config and ARGV
+opts = Options.new
+opts.load_config(File.expand_path("../config.yaml", __FILE__))
+options = opts.options
+
+options[:backlog][:set] = Chronic.parse(options[:radionoise][:backlog])
 
 STATUS_MAP = {
 	0 => "stopped",
@@ -39,15 +43,6 @@ unless ["add", "cron"].include? ARGV[0]
 	puts "Usage #{$0} [add|cron]"
 	exit
 end
-
-# Start Logging
-Logger.setup(STDOUT)
-
-# Load options from Config
-opts = Options.new
-opts.load_config(File.expand_path("../config.yaml", __FILE__))
-options = opts.options
-options[:backlog][:set] = Chronic.parse(options[:radionoise][:backlog])
 
 Logger.log.level = options[:logging][:level]
 

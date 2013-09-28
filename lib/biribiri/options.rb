@@ -4,7 +4,7 @@ require "yaml"
 require "chronic"
 require "active_support/core_ext/hash"
 
-class Options
+class Biribiri::Options
 	attr_reader :options
 
 	DEBUG_MAP = {
@@ -44,7 +44,7 @@ class Options
 		end
 
 		if config[:database] and config[:database][:adapter] == "sqlite3" and config[:database][:database]
-			config[:database][:database] = File.expand_path("../" + config[:database][:database], File.dirname(__FILE__))
+			config[:database][:database] = File.expand_path(config[:database][:database], (APP_ROOT or "."))
 		end
 		@options.deep_merge!(config)
 	end

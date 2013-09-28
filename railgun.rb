@@ -1,22 +1,16 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-require "logger"
-
-ENV["BUNDLE_GEMFILE"] = File.dirname(__FILE__) + "/Gemfile"
+APP_ROOT = File.dirname(__FILE__)
+ENV["BUNDLE_GEMFILE"] = APP_ROOT + "/Gemfile"
+$:.unshift APP_ROOT + "/lib"
 
 require "bundler"
 Bundler.setup(:default)
+require "logger"
 require "active_record"
-
-$:.unshift File.dirname(__FILE__) + "/lib"
-
-require "options"
-require "helpers"
-require "logger_ext"
-require "railgun"
-require "db/backlog"
-require "db/torrents"
+require "biribiri"
+include Biribiri
 
 # TODO: Add ability to pick log destination.
 Logger.setup(STDOUT)

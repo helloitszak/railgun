@@ -1,5 +1,5 @@
-require "processor"
-class XbmcRenamer < Processor::Renamer
+require "biribiri/processor"
+class Biribiri::XbmcRenamer < Biribiri::Processor::Renamer
 	SPECIAL_MAP = {
 		"S" => "S",
 		"C" => "S1",

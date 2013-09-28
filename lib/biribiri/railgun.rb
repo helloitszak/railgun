@@ -1,7 +1,7 @@
-require "processor"
-require "renamers/xbmc_renamer"
+require "biribiri/processor"
+require "biribiri/renamers/xbmc_renamer"
 
-class Railgun < Processor
+class Biribiri::Railgun < Biribiri::Processor
 	def initialize(config)
 		super()
 		@options = config
