@@ -3,7 +3,6 @@ require "logger"
 require "yaml"
 require "chronic"
 require "active_support/core_ext/hash"
-require_relative './helpers.rb'
 
 class Options
 	attr_reader :options
@@ -39,6 +38,14 @@ class Options
 
 	def load_config(file)
 		config = YAML.load(File.read(file)).deep_symbolize_keys
+		
+		if config[:logging] and config[:logging][:level]
+			config[:logging][:level] = DEBUG_MAP[config[:logging][:level].to_sym]
+		end
+
+		if config[:database] and config[:database][:adapter] == "sqlite3" and config[:database][:database]
+			config[:database][:database] = File.expand_path("../" + config[:database][:database], File.dirname(__FILE__))
+		end
 		@options.deep_merge!(config)
 	end
 
@@ -91,4 +98,4 @@ class Options
 		end.parse!(args)
 		options
 	end
-end 
+end

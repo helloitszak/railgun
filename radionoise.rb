@@ -18,8 +18,8 @@ require "options"
 require "helpers"
 require "logger_ext"
 require "railgun"
-
-Dir[File.dirname(__FILE__) + '/lib/db/*.rb'].each {|file| require file }
+require "db/backlog"
+require "db/torrents"
 
 STATUS_MAP = {
 	0 => "stopped",
