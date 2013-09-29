@@ -1,8 +1,8 @@
 New Features:
   ☐ Standalone application for managing the backlog
   ☐ Little web server to display statistics and stuff
-  ☐ Allow logging customization
-  ☐ GELF support
+  ✔ Allow logging customization @done (13-09-28 22:08)
+  ✔ GELF support @done (13-09-28 22:08)
 
 Code Refactor:
   ☐ Don't remove from database, have a "all done" flag

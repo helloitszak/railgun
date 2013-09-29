@@ -13,13 +13,12 @@ require "biribiri"
 include Biribiri
 
 # TODO: Add ability to pick log destination.
-Logger.setup(STDOUT)
-
 # Load options from config and ARGV
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 opts.parse!(ARGV)
 options = opts.options
+Logger.setup(options)
 
 # Get logging online
 Logger.log.level = options[:logging][:level]

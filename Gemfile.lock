@@ -23,11 +23,14 @@ GEM
     coderay (1.0.9)
     commander (4.1.5)
       highline (~> 1.6.11)
+    gelf (1.4.0)
+      json
     highline (1.6.19)
     httparty (0.9.0)
       multi_json (~> 1.0)
       multi_xml
     i18n (0.6.5)
+    json (1.8.0)
     method_source (0.8.1)
     minitest (4.7.5)
     multi_json (1.8.0)
@@ -53,6 +56,7 @@ DEPENDENCIES
   activerecord
   chronic
   commander
+  gelf
   pry
   rake
   sqlite3

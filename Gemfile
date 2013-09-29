@@ -8,6 +8,7 @@ gem 'transmission_api'
 gem 'rake'
 gem 'terminal-table'
 gem 'commander'
+gem 'gelf'
 
 group :development do
 	gem 'pry'
