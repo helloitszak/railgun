@@ -22,6 +22,7 @@ opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 options = opts.options
 Logger.setup(options)
+Logger.log.info("Radio Noise (欠陥電気) starting up.")
 
 options[:backlog][:set] = Chronic.parse(options[:radionoise][:backlog])
 

@@ -18,6 +18,7 @@ opts.load_config(File.expand_path("../config.yaml", __FILE__))
 opts.parse!(ARGV)
 options = opts.options
 Logger.setup(options)
+Logger.log.info("Railgun starting up.")
 
 # Get logging online
 Logger.log.level = options[:logging][:level]
