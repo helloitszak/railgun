@@ -35,8 +35,8 @@ program :version, "0.1.0"
 
 command :list do |c|
 	c.syntax = "dbtool.rb list"
-	c.description = "Lists torrents and backlogs"
-	c.option "--all"
+	c.description = "Lists torrents and current backlogs"
+	c.option "--all", "Lists all backlogs, even expired ones."
 	c.action do |args, options|
 		scope = (options.all ? Backlog.all : Backlog.where("expire > ?", Time.now))
 		backlog_rows = scope.map do |row|
