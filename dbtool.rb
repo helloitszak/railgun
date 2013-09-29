@@ -36,8 +36,10 @@ program :version, "0.1.0"
 command :list do |c|
 	c.syntax = "dbtool.rb list"
 	c.description = "Lists torrents and backlogs"
+	c.option "--all"
 	c.action do |args, options|
-		backlog_rows = Backlog.all.map do |row|
+		scope = (options.all ? Backlog.all : Backlog.where("expire > ?", Time.now))
+		backlog_rows = scope.map do |row|
 			path = Helpers.middletrunc(File.basename(row.path))
 			[row.id, path, row.expire, row.added, row.runs]
 		end
