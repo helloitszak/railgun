@@ -13,6 +13,8 @@ Bundler.setup(:default)
 require "logger"
 require "active_record"
 require "biribiri"
+require "chronic"
+require "transmission_api"
 include Biribiri
 
 # TODO: Add ability to pick log destination.
