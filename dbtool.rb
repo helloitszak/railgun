@@ -38,7 +38,7 @@ command :list do |c|
 	c.description = "Lists torrents and backlogs"
 	c.action do |args, options|
 		backlog_rows = Backlog.all.map do |row|
-			path = Helpers.middletrunc(row.path)
+			path = Helpers.middletrunc(File.basename(row.path))
 			[row.id, path, row.expire, row.added, row.runs]
 		end
 		puts Terminal::Table.new(
