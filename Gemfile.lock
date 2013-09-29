@@ -21,6 +21,9 @@ GEM
     builder (3.1.4)
     chronic (0.10.2)
     coderay (1.0.9)
+    commander (4.1.5)
+      highline (~> 1.6.11)
+    highline (1.6.19)
     httparty (0.9.0)
       multi_json (~> 1.0)
       multi_xml
@@ -36,6 +39,7 @@ GEM
     rake (10.1.0)
     slop (3.4.4)
     sqlite3 (1.3.8)
+    terminal-table (1.4.5)
     thread_safe (0.1.2)
       atomic
     transmission_api (0.0.3)
@@ -48,7 +52,9 @@ PLATFORMS
 DEPENDENCIES
   activerecord
   chronic
+  commander
   pry
   rake
   sqlite3
+  terminal-table
   transmission_api
