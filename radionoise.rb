@@ -17,13 +17,11 @@ require "chronic"
 require "transmission_api"
 include Biribiri
 
-# TODO: Add ability to pick log destination.
-Logger.setup(STDOUT)
-
 # Load options from config and ARGV
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 options = opts.options
+Logger.setup(options)
 
 options[:backlog][:set] = Chronic.parse(options[:radionoise][:backlog])
 

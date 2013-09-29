@@ -12,7 +12,6 @@ require "active_record"
 require "biribiri"
 include Biribiri
 
-# TODO: Add ability to pick log destination.
 # Load options from config and ARGV
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))

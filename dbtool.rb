@@ -14,11 +14,11 @@ require "commander/import"
 require "terminal-table"
 include Biribiri
 
-Logger.setup(STDOUT)
 
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
 options = opts.options
+Logger.setup(options)
 
 # Get logging online
 Logger.log.level = options[:logging][:level]
