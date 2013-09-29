@@ -28,12 +28,11 @@ Logger.log.debug "DEBUGGING ONLINE!"
 # Setup Railgun which handles renaming
 railgun = Railgun.new(options)
 
-if options[:backlog][:run] or options[:backlog][:set]
-	Logger.log.debug "Connecting to Database"
-	# Connect to database
-	ActiveRecord::Base.establish_connection(options[:database])
-	ActiveRecord::Base.logger = Logger.log
-end
+Logger.log.debug "Connecting to Database"
+# Connect to database
+ActiveRecord::Base.establish_connection(options[:database])
+ActiveRecord::Base.logger = Logger.log
+
 
 Logger.log.debug "Options: #{options.to_s}"
 

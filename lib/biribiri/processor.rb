@@ -141,6 +141,13 @@ class Biribiri::Processor
 						Logger.log.debug($!)
 					end
 
+					original_backlog = Backlog.where(path: file[:src][:file]).first
+
+					if original_backlog
+						original_backlog.path = finalpath
+						original_backlog.save
+					end
+
 					if @backlog_set
 						backlog = Backlog.where(path: finalpath).first_or_create
 						if backlog.added.nil?
