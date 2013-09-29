@@ -37,8 +37,9 @@ command :list do |c|
 	c.syntax = "dbtool.rb list"
 	c.description = "Lists torrents and backlogs"
 	c.action do |args, options|
-		backlog_rows = Biribiri::Backlog.all.map do |row|
-			[row.id, row.path, row.expire, row.added, row.runs]
+		backlog_rows = Backlog.all.map do |row|
+			path = Helpers.middletrunc(row.path)
+			[row.id, path, row.expire, row.added, row.runs]
 		end
 		puts Terminal::Table.new(
 			:title => "Backlog", 
@@ -46,8 +47,8 @@ command :list do |c|
 			:rows => backlog_rows)
 
 		puts "\n\n"
-		
-		torrent_rows = Biribiri::Torrents.all.map do |row|
+
+		torrent_rows = Torrents.all.map do |row|
 			[row.id, row.hash_string, row.name, row.copied?]
 		end
 

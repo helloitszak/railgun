@@ -7,4 +7,16 @@ class Biribiri::Helpers
 			s
 		end
 	end
+
+	def self.middletrunc(s, length=50, ellipsis = '…')
+		if s.length > length + 1
+			chunksize = length / 2
+
+			startchunk = s[0, chunksize]
+			endchunk = s[-chunksize, chunksize]
+			startchunk.strip + ellipsis + endchunk.strip
+		else
+			s
+		end
+	end
 end
