@@ -119,7 +119,7 @@ class Biribiri::Processor
 					if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
 						anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
 						basepath = @animebase + "/" + anime_name
-						FileUtils.mkdir(basepath)
+						FileUtils.mkdir_p(basepath)
 					end
 					
 					if @moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])

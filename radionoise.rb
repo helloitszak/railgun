@@ -141,7 +141,11 @@ elsif ARGV[0] == "cron"
 		trow = Torrents.find_by hash_string: torrent["hashString"]
 		if trow and trow.copied?
 			Logger.log.info("Removed #{torrent["downloadDir"]}/#{torrent["name"]}")
-			FileUtils.rm_r("#{torrent["downloadDir"]}/#{torrent["name"]}")		
+			begin
+				FileUtils.rm_r("#{torrent["downloadDir"]}/#{torrent["name"]}")
+			rescue
+				Logger.log.info("#{torrent["downloadDir"]}/#{torrent["name"]} not found. Assuming gone.")
+			end
 
 			# Remove hash from database so torrent can be redownloaded again
 			Logger.log.info("Removed #{torrent["hashString"]} from database")
