@@ -118,6 +118,10 @@ class Biribiri::Processor
 
 					if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
 						anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
+						anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
+						anime_name.gsub!(/\s+/, " ")
+						anime_name.gsub!(/^\s|\s$/, "")
+						anime_name.gsub!(/`/, "'")
 						basepath = @animebase + "/" + anime_name
 						FileUtils.mkdir_p(basepath)
 					end
