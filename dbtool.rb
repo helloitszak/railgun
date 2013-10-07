@@ -37,10 +37,12 @@ command :list do |c|
 	c.syntax = "dbtool.rb list"
 	c.description = "Lists torrents and current backlogs"
 	c.option "--all", "Lists all backlogs, even expired ones."
+	c.option "--notrunc", "Doesn't truncate filenames in the middle."
 	c.action do |args, options|
 		scope = (options.all ? Backlog.all : Backlog.where("expire > ?", Time.now))
 		backlog_rows = scope.map do |row|
-			path = Helpers.middletrunc(File.basename(row.path))
+			path = File.basename(row.path)
+			path = Helpers.middletrunc(path) unless options.notrunc
 			[row.id, path, row.expire, row.added, row.runs]
 		end
 		puts Terminal::Table.new(
