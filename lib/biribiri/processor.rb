@@ -122,6 +122,7 @@ class Biribiri::Processor
 						anime_name.gsub!(/\s+/, " ")
 						anime_name.gsub!(/^\s|\s$/, "")
 						anime_name.gsub!(/`/, "'")
+						anime_name.gsub!(/\.$/, "")
 						basepath = @animebase + "/" + anime_name
 						FileUtils.mkdir_p(basepath)
 					end
