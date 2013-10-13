@@ -3,7 +3,7 @@ New Features:
   ☐ Little web server to display statistics and stuff
   ✔ Allow logging customization @done (13-09-28 22:08)
   ✔ GELF support @done (13-09-28 22:08)
-
+  ☐ Better filename length handling (windows doesn't like over 129, but 161 file names seem to handle fine)
 Code Refactor:
   ☐ Don't remove from database, have a "all done" flag
   ☐ Write some tests
