@@ -16,6 +16,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Renamer
 		show_title.gsub!(/\s+/, " ")
 		show_title.gsub!(/^\s|\s$/, "")
 		show_title.gsub!(/`/, "'")
+		show_title = Helpers.truncate(show_title, 64)
 
 		# Episode Title
 		episode_title = [file[:anime][:ep_english_name], file[:anime][:ep_romaji_name]].find {|x| not x.nil?}
