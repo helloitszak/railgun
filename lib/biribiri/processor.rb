@@ -5,6 +5,7 @@ class Biribiri::Processor
 	attr_accessor :log, :testmode, :animebase, :moviebase, :backlog_set
 	attr_accessor :anidb_server, :anidb_port, :anidb_remoteport, :anidb_username, :anidb_password, :anidb_nat
 	attr_accessor :plugins
+	attr_reader :anidb
 
 	FILE_FFIELDS = [ :aid, :eid, :gid, :length, :quality, :video_resolution,
 					 :source, :sub_language, :dub_language, :video_codec,
@@ -52,6 +53,9 @@ class Biribiri::Processor
 		@info_queue = Queue.new
 		@process_queue = Queue.new
 
+		@anidb = Net::AniDBUDP.new(@anidb_server, @anidb_port, @anidb_remoteport)
+		@anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
+
 		if @testmode
 			Logger.log.info("[#] Running in test mode. Files won't be renamed.")
 		end
@@ -80,15 +84,12 @@ class Biribiri::Processor
 		end
 
 		@info_worker = Thread.new do
-			anidb = Net::AniDBUDP.new(@anidb_server, @anidb_port, @anidb_remoteport)
-			anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
-
 			while true
 				Logger.log.debug("[I] Waiting for next file to get info")
 				src = @info_queue.pop
 				break unless src
 				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
-				file = anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
+				file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
 				if file.nil?
 					Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
 					next
@@ -114,8 +115,6 @@ class Biribiri::Processor
 
 				Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
 			end
-
-			anidb.logout
 			@process_queue << nil
 		end
 
@@ -147,6 +146,7 @@ class Biribiri::Processor
 	def teardown
 		@ed2k_queue << nil
 		[@ed2k_worker, @info_worker, @process_worker].each(&:join)
+		@anidb.logout
 	end
 
 	private
