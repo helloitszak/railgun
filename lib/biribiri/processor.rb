@@ -7,8 +7,8 @@ class Biribiri::Processor
 	attr_accessor :renamer
 
 	FILE_FFIELDS = [ :aid, :eid, :gid, :length, :quality, :video_resolution,
-	                 :source, :sub_language, :dub_language, :video_codec,
-	                 :audio_codec_list, :crc32, :state, :file_type ]
+					 :source, :sub_language, :dub_language, :video_codec,
+					 :audio_codec_list, :crc32, :state, :file_type ]
 
 	FILE_FSTATES = {
 		:crcok      => 1,
@@ -72,7 +72,7 @@ class Biribiri::Processor
 				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
 				file = anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
 				if file.nil?
-          			Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
+					Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
 					next
 				end
 				Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
