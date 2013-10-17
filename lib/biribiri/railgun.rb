@@ -1,5 +1,5 @@
 require "biribiri/processor"
-require "biribiri/renamers/xbmc_renamer"
+require "biribiri/plugins/xbmc_renamer"
 
 class Biribiri::Railgun < Biribiri::Processor
 	def initialize(config)
@@ -17,7 +17,7 @@ class Biribiri::Railgun < Biribiri::Processor
 		@anidb_password = config[:anidb][:password]
 		@anidb_nat = config[:anidb][:nat]
 
-		@renamer = XbmcRenamer
+		@plugins << XbmcRenamer
 
 		@backlog_set = config[:backlog][:set]
 
