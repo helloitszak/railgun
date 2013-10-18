@@ -1,5 +1,6 @@
 require "biribiri/processor"
 require "biribiri/plugins/xbmc_renamer"
+require "biribiri/plugins/mylist_adder"
 
 class Biribiri::Railgun < Biribiri::Processor
 	def initialize(config)
@@ -18,6 +19,9 @@ class Biribiri::Railgun < Biribiri::Processor
 		@anidb_nat = config[:anidb][:nat]
 
 		@plugins << XbmcRenamer
+		if config[:renamer][:mylist]
+			@plugins << MyListAdder
+		end
 
 		@backlog_set = config[:backlog][:set]
 
