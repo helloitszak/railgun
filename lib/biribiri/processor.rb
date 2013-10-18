@@ -2,7 +2,7 @@ require 'fileutils'
 require 'thread'
 require "net/anidbudp"
 class Biribiri::Processor
-	attr_accessor :log, :testmode, :animebase, :moviebase, :backlog_set
+	attr_accessor :log, :testmode
 	attr_accessor :anidb_server, :anidb_port, :anidb_remoteport, :anidb_username, :anidb_password, :anidb_nat
 	attr_accessor :plugins
 	attr_reader :anidb

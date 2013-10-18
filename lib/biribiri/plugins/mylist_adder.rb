@@ -1,6 +1,6 @@
 require "biribiri/processor"
 class Biribiri::MyListAdder < Biribiri::Processor::Plugin
-	def self.process(processor, info)
+	def process(processor, info)
 		fid = info[:file][:fid]
 		if processor.testmode
 			Logger.log.info("[MyList] Would add #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, LID: TEST, FID: #{info[:file][:fid]})")

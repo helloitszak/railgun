@@ -8,8 +8,6 @@ class Biribiri::Railgun < Biribiri::Processor
 		@options = config
 
 		@testmode = config[:testmode]
-		@animebase = config[:renamer][:animebase]
-		@moviebase = config[:renamer][:moviebase]
 
 		@anidb_server = config[:anidb][:server]
 		@anidb_port = config[:anidb][:port]
@@ -18,12 +16,13 @@ class Biribiri::Railgun < Biribiri::Processor
 		@anidb_password = config[:anidb][:password]
 		@anidb_nat = config[:anidb][:nat]
 
-		@plugins << XbmcRenamer
-		if config[:renamer][:mylist]
-			@plugins << MyListAdder
-		end
+		xbmcrenamer = XbmcRenamer.new(config[:renamer][:animebase], config[:renamer][:moviebase])
+		xbmcrenamer.backlog_set = config[:backlog][:set]
+		@plugins << xbmcrenamer
 
-		@backlog_set = config[:backlog][:set]
+		if config[:renamer][:mylist]
+			@plugins << MyListAdder.new
+		end
 
 		setup
 	end

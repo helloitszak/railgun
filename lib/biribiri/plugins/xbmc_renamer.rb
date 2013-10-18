@@ -1,5 +1,6 @@
 require "biribiri/processor"
 class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
+	attr_accessor :animebase, :moviebase, :backlog_set
 	SPECIAL_MAP = {
 		"S" => "S",
 		"C" => "S1",
@@ -8,7 +9,13 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		"O" => "S4"
 	}
 
-	def self.process(processor, file)
+
+	def initialize(animebase, moviebase)
+		@animebase = animebase
+		@moviebase = moviebase
+	end
+
+	def process(processor, file)
 		renamed_file = self.rename(file[:file])
 
 		if processor.testmode
@@ -16,19 +23,19 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		else
 			basepath = File.dirname(file[:src][:file])
 
-			if processor.animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
+			if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
 				anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
 				anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
 				anime_name.gsub!(/\s+/, " ")
 				anime_name.gsub!(/^\s|\s$/, "")
 				anime_name.gsub!(/`/, "'")
 				anime_name.gsub!(/\.$/, "")
-				basepath = processor.animebase + "/" + anime_name
+				basepath = @animebase + "/" + anime_name
 				FileUtils.mkdir_p(basepath)
 			end
 			
-			if processor.moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])
-				basepath = processor.moviebase
+			if @moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])
+				basepath = @moviebase
 			end
 
 			finalpath = File.expand_path("#{basepath}/#{renamed_file}")
@@ -52,21 +59,21 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 				original_backlog.save
 			end
 
-			if processor.backlog_set
+			if @backlog_set
 				backlog = Backlog.where(path: finalpath).first_or_create
 				if backlog.added.nil?
 					backlog.added = DateTime.now
 				end
 
-				backlog.expire = processor.backlog_set
+				backlog.expire = @backlog_set
 
 				backlog.save
-				Logger.log.info("[P] Added backlog for #{renamed_file} to expire on #{processor.backlog_set}")
+				Logger.log.info("[P] Added backlog for #{renamed_file} to expire on #{@backlog_set}")
 			end
 		end
 	end
 
-	def self.rename(file)
+	def rename(file)
 		episode_title = [file[:anime][:ep_english_name], file[:anime][:ep_romaji_name]].find {|x| not x.nil?}
 
 		# Show Title
