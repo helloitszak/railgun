@@ -2,9 +2,10 @@ require 'fileutils'
 require 'thread'
 require "net/anidbudp"
 class Biribiri::Processor
-	attr_accessor :log, :testmode, :animebase, :moviebase, :backlog_set
+	attr_accessor :log, :testmode
 	attr_accessor :anidb_server, :anidb_port, :anidb_remoteport, :anidb_username, :anidb_password, :anidb_nat
-	attr_accessor :renamer
+	attr_accessor :plugins
+	attr_reader :anidb
 
 	FILE_FFIELDS = [ :aid, :eid, :gid, :length, :quality, :video_resolution,
 					 :source, :sub_language, :dub_language, :video_codec,
@@ -28,10 +29,22 @@ class Biribiri::Processor
 		:version5 => 5
 	}
 
-	class Renamer
-		def self.rename(file)
-			raise NotImplementedError
+	class Plugin
+		def self.ed2k(processor, info)
+			Logger.log.debug("[Plugin] No ed2k hook specified.")
 		end
+
+		def self.info(processor, info)
+			Logger.log.debug("[Plugin] No info hook specified.")
+		end
+
+		def self.process(processor, info)
+			Logger.log.debug("[Plugin] No process hook specified.")
+		end
+	end
+
+	def initialize
+		@plugins = []
 	end
 
 	def setup
@@ -40,20 +53,29 @@ class Biribiri::Processor
 		@info_queue = Queue.new
 		@process_queue = Queue.new
 
+		@anidb = Net::AniDBUDP.new(@anidb_server, @anidb_port, @anidb_remoteport)
+		@anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
+
 		if @testmode
 			Logger.log.info("[#] Running in test mode. Files won't be renamed.")
 		end
 
-		# setup ed2k hash worker
 		@ed2k_worker = Thread.new do
-			# Go forever while we have stuff to process
 			while true
 				Logger.log.debug("[H] Waiting for next file to hash")
+
+				# Get the next file, stopping the queue if nil is recieved.
 				file = @ed2k_queue.pop
 				break unless file
+				
 				Logger.log.debug("[H] Hashing #{File.basename(file)}")
+				
 				size, hash = Net::AniDBUDP.ed2k_file_hash(file)
-				@info_queue << { :size => size, :hash => hash, :file => file }
+				
+				info = { :size => size, :hash => hash, :file => file }
+				call_plugin_stack(:ed2k, info)
+				@info_queue << info
+
 				Logger.log.info("[H] #{File.basename(file)} (H: #{hash}, S: #{size})")
 			end
 
@@ -62,21 +84,17 @@ class Biribiri::Processor
 		end
 
 		@info_worker = Thread.new do
-			anidb = Net::AniDBUDP.new(@anidb_server, @anidb_port, @anidb_remoteport)
-			anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
-
 			while true
 				Logger.log.debug("[I] Waiting for next file to get info")
 				src = @info_queue.pop
 				break unless src
 				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
-				file = anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
+				file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
 				if file.nil?
 					Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
 					next
 				end
 				Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
-
 
 				# Extract the states variable into something more sane
 				# Ryan Bates please bear my children
@@ -91,13 +109,12 @@ class Biribiri::Processor
 				version = (state_keys & [:version2, :version3, :version4, :version5]).map { |i| VERSION_MAP[i] }.max
 				file[:file][:version] = version || 1
 
-				# Uncomment for debugging
-				#pp file
-				@process_queue << {:src => src, :file => file}
+				info = {:src => src, :file => file}
+				call_plugin_stack(:info, info)
+				@process_queue << info
+
 				Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
 			end
-
-			anidb.logout
 			@process_queue << nil
 		end
 
@@ -108,63 +125,9 @@ class Biribiri::Processor
 				file = @process_queue.pop
 				break unless file
 				Logger.log.debug("[P] Processing #{File.basename(file[:src][:file])}")
-				
-				renamed_file = @renamer.rename(file[:file])
 
-				if @testmode
-					Logger.log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
-				else
-					basepath = File.dirname(file[:src][:file])
-
-					if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
-						anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
-						anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
-						anime_name.gsub!(/\s+/, " ")
-						anime_name.gsub!(/^\s|\s$/, "")
-						anime_name.gsub!(/`/, "'")
-						anime_name.gsub!(/\.$/, "")
-						basepath = @animebase + "/" + anime_name
-						FileUtils.mkdir_p(basepath)
-					end
-					
-					if @moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])
-						basepath = @moviebase
-					end
-
-					finalpath = File.expand_path("#{basepath}/#{renamed_file}")
-
-					begin
-						if file[:src][:file] != finalpath
-							FileUtils.mv(file[:src][:file], finalpath)
-							Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
-						else
-							Logger.log.warn("[P] #{File.basename(file[:src][:file])} was not renamed to itself.")
-						end
-					rescue
-						Logger.log.error("[P] Could not rename #{file[:src][:file]}")
-						Logger.log.debug($!)
-					end
-
-					original_backlog = Backlog.where(path: file[:src][:file]).first
-
-					if original_backlog
-						original_backlog.path = finalpath
-						original_backlog.save
-					end
-
-					if @backlog_set
-						backlog = Backlog.where(path: finalpath).first_or_create
-						if backlog.added.nil?
-							backlog.added = DateTime.now
-						end
-
-						backlog.expire = @backlog_set
-
-						backlog.save
-						Logger.log.info("[P] Added backlog for #{renamed_file} to expire on #{@backlog_set}")
-					end
-				end
-			end
+				call_plugin_stack(:process, file)
+			end	
 		end
 
 		Logger.log.info("Workers are up and waiting.")
@@ -183,5 +146,16 @@ class Biribiri::Processor
 	def teardown
 		@ed2k_queue << nil
 		[@ed2k_worker, @info_worker, @process_worker].each(&:join)
+		@anidb.logout
+	end
+
+	private
+	def call_plugin_stack(method_name, param)
+		@plugins.each do |plugin|
+			if plugin.respond_to?(method_name)
+				Logger.log.debug("Called plugin #{plugin}::#{method_name.to_s}(#{param})")
+				plugin.send(method_name, self, param)
+			end
+		end
 	end
 end
