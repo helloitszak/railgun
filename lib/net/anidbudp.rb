@@ -890,7 +890,6 @@ module Net
       end
 
       reply = command('MYLISTADD', h)
-      puts reply.code
       case reply.code
       when 210
         reply.lines[0].to_i
