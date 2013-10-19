@@ -890,6 +890,7 @@ module Net
       end
 
       reply = command('MYLISTADD', h)
+      puts reply.code
       case reply.code
       when 210
         reply.lines[0].to_i
@@ -907,7 +908,9 @@ module Net
           h[:lid]
         end
       when 311
-        nil
+        :edited
+      when 411
+        :notfound
       else
         nil
       end
