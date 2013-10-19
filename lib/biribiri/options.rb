@@ -33,6 +33,8 @@ class Biribiri::Options
 
 		@options[:anidb] = {}
 
+		@options[:mylist] = {}
+
 		@options[:radionoise] = {}
 	end
 

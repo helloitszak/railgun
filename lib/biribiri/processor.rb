@@ -43,8 +43,17 @@ class Biribiri::Processor
 		end
 	end
 
-	def initialize
+	def initialize(anidb, testmode=false)
 		@plugins = []
+
+		@testmode = testmode
+
+		@anidb_server = anidb[:server]
+		@anidb_port = anidb[:port]
+		@anidb_remoteport = anidb[:remoteport]
+		@anidb_username = anidb[:username]
+		@anidb_password = anidb[:password]
+		@anidb_nat = anidb[:nat]
 	end
 
 	def setup
