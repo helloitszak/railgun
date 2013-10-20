@@ -1,7 +1,7 @@
 require "biribiri/processor"
 class Biribiri::MyListAdder < Biribiri::Processor::Plugin
 	attr_accessor :watched
-	def initialize(watch=:fuck)
+	def initialize(watch=false)
 		@watched = watch
 		Logger.log.debug("[MyList] Plugin initialized. Adding files with Watched State: #{watched.to_s}")
 	end
