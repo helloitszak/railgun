@@ -5,7 +5,7 @@ class Biribiri::Processor
 	attr_accessor :log, :testmode
 	attr_accessor :anidb_server, :anidb_port, :anidb_remoteport, :anidb_username, :anidb_password, :anidb_nat
 	attr_accessor :plugins
-	attr_reader :anidb
+	attr_reader :anidb, :mutex
 
 	FILE_FFIELDS = [ :aid, :eid, :gid, :length, :quality, :video_resolution,
 					 :source, :sub_language, :dub_language, :video_codec,
@@ -45,6 +45,7 @@ class Biribiri::Processor
 
 	def initialize(anidb, testmode=false)
 		@plugins = []
+		@mutex = Mutex.new
 
 		@testmode = testmode
 
@@ -94,35 +95,37 @@ class Biribiri::Processor
 
 		@info_worker = Thread.new do
 			while true
-				Logger.log.debug("[I] Waiting for next file to get info")
-				src = @info_queue.pop
-				break unless src
-				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
-				file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
-				if file.nil?
-					Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
-					next
+				processor.mutex.synchronize do
+					Logger.log.debug("[I] Waiting for next file to get info")
+					src = @info_queue.pop
+					break unless src
+					Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
+					file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
+					if file.nil?
+						Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
+						next
+					end
+					Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
+
+					# Extract the states variable into something more sane
+					# Ryan Bates please bear my children
+					state_keys = FILE_FSTATES.reject { |k,v| ((file[:file][:state].to_i || 0) & v).zero? }.keys
+					file[:file][:state_keys] = state_keys
+
+					file[:file][:crcstatus] = (state_keys & [:crcok, :crcerr]).first
+					file[:file][:censoredstatus] = (state_keys & [:uncensored, :censored]).first
+
+					# This is kinda gross, but it works.
+					# Coded to get the maximum version provided in case of brain damage
+					version = (state_keys & [:version2, :version3, :version4, :version5]).map { |i| VERSION_MAP[i] }.max
+					file[:file][:version] = version || 1
+
+					info = {:src => src, :file => file}
+					call_plugin_stack(:info, info)
+					@process_queue << info
+
+					Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
 				end
-				Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
-
-				# Extract the states variable into something more sane
-				# Ryan Bates please bear my children
-				state_keys = FILE_FSTATES.reject { |k,v| ((file[:file][:state].to_i || 0) & v).zero? }.keys
-				file[:file][:state_keys] = state_keys
-
-				file[:file][:crcstatus] = (state_keys & [:crcok, :crcerr]).first
-				file[:file][:censoredstatus] = (state_keys & [:uncensored, :censored]).first
-
-				# This is kinda gross, but it works.
-				# Coded to get the maximum version provided in case of brain damage
-				version = (state_keys & [:version2, :version3, :version4, :version5]).map { |i| VERSION_MAP[i] }.max
-				file[:file][:version] = version || 1
-
-				info = {:src => src, :file => file}
-				call_plugin_stack(:info, info)
-				@process_queue << info
-
-				Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
 			end
 			@process_queue << nil
 		end
