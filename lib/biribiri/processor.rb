@@ -95,11 +95,11 @@ class Biribiri::Processor
 
 		@info_worker = Thread.new do
 			while true
-				processor.mutex.synchronize do
-					Logger.log.debug("[I] Waiting for next file to get info")
-					src = @info_queue.pop
-					break unless src
-					Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
+				Logger.log.debug("[I] Waiting for next file to get info")
+				src = @info_queue.pop
+				break unless src
+				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
+				@mutex.synchronize do
 					file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
 					if file.nil?
 						Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
