@@ -14,12 +14,12 @@ class Biribiri::MyListAdder < Biribiri::Processor::Plugin
 			else
 				# This is bad design, but it's AniDB's API's fault.
 				# There is no obvious way to add or edit with one command.
-				result = processor.anidb.mylist_add(fid, true, @watched)
+				result = processor.anidb.mylist_add(fid, true, (@watched ? 1 : 0))
 				case result
 				when :edited
 					Logger.log.info("[MyList] Edited #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
 				when :notfound
-					result = processor.anidb.mylist_add(fid, false, @watched)
+					result = processor.anidb.mylist_add(fid, false, (@watched ? 1 : 0))
 					if result and result.is_a? Fixnum
 						Logger.log.info("[MyList] Added #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, LID: #{result}, FID: #{info[:file][:fid]})")
 					end
