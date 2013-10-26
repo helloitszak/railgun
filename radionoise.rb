@@ -77,7 +77,7 @@ end
 command :add do |c|
 	c.syntax = "radionoise.rb add [torrenthash]"
 	c.description = "Post-processing from transmission. $TR_TORRENT_HASH can be used in place of [torrenthash]"
-	c.action do |args, options|
+	c.action do |args, cops|
 		# Get information on torrent from hash
 		thash = (ENV["TR_TORRENT_HASH"] or options[0])
 		unless thash
@@ -124,7 +124,7 @@ end
 command :cron do |c|
 	c.syntax = "radionoise.rb cron"
 	c.description = "Processes old torrents and unsorted folder"
-	c.action do |args, options|
+	c.action do |args, cops|
 		# Run Railgun on all video files in "Unsorted" folder (this catches files never had info)
 		Logger.log.info("Processing #{options[:renamer][:unsorted]}")
 		globpath = options[:renamer][:unsorted]
