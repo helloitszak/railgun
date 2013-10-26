@@ -22,7 +22,7 @@ Logger.log.debug "DEBUGGING ONLINE!"
 
 program :name, "mylist"
 program :description, "Manages AniDB MyList"
-program :version, "0.1.0"
+program :version, VERSION
 
 global_option('--test', "Pretends to add the file to MyList")
 global_option("--loglevel [LEVEL]", Options::DEBUG_MAP.keys, "Sets logging to LEVEL") do |level|

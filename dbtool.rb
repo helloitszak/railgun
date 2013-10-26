@@ -31,7 +31,7 @@ ActiveRecord::Base.logger = Logger.log
 
 program :name, "dbtool"
 program :description, "Database maintance tool for those who are lazy"
-program :version, "0.1.0"
+program :version, VERSION
 
 command :list do |c|
 	c.syntax = "dbtool.rb list"
