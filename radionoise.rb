@@ -76,7 +76,7 @@ end
 
 command :add do |c|
 	c.syntax = "radionoise.rb add [torrenthash]"
-	c.descriptions = "Post-processing from transmission. $TR_TORRENT_HASH can be used in place of [torrenthash]"
+	c.description = "Post-processing from transmission. $TR_TORRENT_HASH can be used in place of [torrenthash]"
 	c.action do |args, options|
 		# Get information on torrent from hash
 		thash = (ENV["TR_TORRENT_HASH"] or options[0])
