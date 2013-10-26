@@ -9,17 +9,22 @@ Bundler.setup(:default)
 require "logger"
 require "active_record"
 require "biribiri"
-require "commander/import"
 include Biribiri
 
 opts = Options.new
-opts.load_config(File.expand_path("../config.yaml", __FILE__))
+begin 
+	opts.load_config(File.expand_path("../config.yaml", __FILE__))
+rescue Exception => e
+	puts e.message
+	exit
+end
 Logger.setup(opts.options)
 
 # Get logging online
 Logger.log.level = opts.options[:logging][:level]
 Logger.log.debug "DEBUGGING ONLINE!"
 
+require "commander/import"
 program :name, "mylist"
 program :description, "Manages AniDB MyList"
 program :version, VERSION

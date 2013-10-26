@@ -12,12 +12,16 @@ require "active_record"
 require "biribiri"
 require "chronic"
 require "transmission_api"
-require "commander/import"
 include Biribiri
 
 # Load options from config and ARGV
 opts = Options.new
-opts.load_config(File.expand_path("../config.yaml", __FILE__))
+begin 
+	opts.load_config(File.expand_path("../config.yaml", __FILE__))
+rescue Exception => e
+	puts e.message
+	exit
+end
 options = opts.options
 Logger.setup(options)
 Logger.log.info("Radio Noise (欠陥電気) starting up.")
@@ -60,9 +64,10 @@ ActiveRecord::Base.logger = Logger.log
 # status => number (see status_map)
 # isFinished => boolean (has reached ratio limit)
 
+require "commander/import"
 program :name, "radionoise"
 program :description, "The post-processing script for dealing with torrents"
-program :version, VERSION
+program :version, Biribiri::VERSION
 
 global_option("--loglevel [LEVEL]", Options::DEBUG_MAP.keys, "Sets logging to LEVEL") do |level|
 	Logger.log.level = Options::DEBUG_MAP[level]

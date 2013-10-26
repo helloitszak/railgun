@@ -39,6 +39,9 @@ class Biribiri::Options
 	end
 
 	def load_config(file)
+		unless File.exists?(file)
+			raise "Config file #{file} not found."
+		end
 		config = YAML.load(File.read(file)).deep_symbolize_keys
 		
 		if config[:logging] and config[:logging][:level]
