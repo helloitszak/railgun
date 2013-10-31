@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-APP_ROOT = File.dirname(__FILE__)
+APP_ROOT = File.dirname(__FILE__) + "/../"
 ENV["BUNDLE_GEMFILE"] = APP_ROOT + "/Gemfile"
 $:.unshift APP_ROOT + "/lib"
 
@@ -15,7 +15,7 @@ include Biribiri
 
 # Load options from config and ARGV
 opts = Options.new
-opts.load_config(File.expand_path("../config.yaml", __FILE__))
+opts.load_config(opts.load_config(APP_ROOT + "/config.yaml"))
 #opts.parse!(ARGV)
 options = opts.options
 Logger.setup(options)
