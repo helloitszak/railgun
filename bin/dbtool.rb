@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: UTF-8
 
-APP_ROOT = File.dirname(__FILE__)
+APP_ROOT = File.dirname(__FILE__) + "/../"
 ENV["BUNDLE_GEMFILE"] = APP_ROOT + "/Gemfile"
 $:.unshift APP_ROOT + "/lib"
 
@@ -10,13 +10,17 @@ Bundler.setup(:default)
 require "logger"
 require "active_record"
 require "biribiri"
-require "commander/import"
 require "terminal-table"
 include Biribiri
 
 
 opts = Options.new
-opts.load_config(File.expand_path("../config.yaml", __FILE__))
+begin 
+	opts.load_config(APP_ROOT + "/config.yaml")
+rescue Exception => e
+	puts e.message
+	exit
+end
 options = opts.options
 Logger.setup(options)
 
@@ -29,9 +33,10 @@ Logger.log.debug "Connecting to Database"
 ActiveRecord::Base.establish_connection(options[:database])
 ActiveRecord::Base.logger = Logger.log
 
+require "commander/import"
 program :name, "dbtool"
 program :description, "Database maintance tool for those who are lazy"
-program :version, "0.1.0"
+program :version, VERSION
 
 command :list do |c|
 	c.syntax = "dbtool.rb list"
