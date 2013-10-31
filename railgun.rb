@@ -10,12 +10,13 @@ Bundler.setup(:default)
 require "logger"
 require "active_record"
 require "biribiri"
+require "chronic"
 include Biribiri
 
 # Load options from config and ARGV
 opts = Options.new
 opts.load_config(File.expand_path("../config.yaml", __FILE__))
-opts.parse!(ARGV)
+#opts.parse!(ARGV)
 options = opts.options
 Logger.setup(options)
 Logger.log.info("Railgun starting up.")
@@ -32,23 +33,75 @@ Logger.log.debug "Connecting to Database"
 ActiveRecord::Base.establish_connection(options[:database])
 ActiveRecord::Base.logger = Logger.log
 
+require "commander/import"
+program :name, "radionoise"
+program :description, "The post-processing script for dealing with torrents"
+program :version, Biribiri::VERSION
+default_command :process
 
-Logger.log.debug "Options: #{options.to_s}"
+global_option("--loglevel [LEVEL]", Options::DEBUG_MAP.keys, "Sets logging to LEVEL") do |level|
+	Logger.log.level = Options::DEBUG_MAP[level]
+	Logger.log.debug "DEBUGGING ONLINE!"
+end
 
-if options[:backlog][:run]
-	Logger.log.info("Processing Backlog")
-	Backlog.where("expire > ?", Time.now).each do |backlog|
-		railgun.process(backlog.path)
-		backlog.update(runs: backlog.runs + 1)
+command :runbacklog do |c|
+	c.syntax = "railgun.rb runbacklog"
+	c.description = "Runs the railgun backlog"
+	c.action do |args,cops|
+		Logger.log.info("Processing Backlog")
+		Backlog.where("expire > ?", Time.now).each do |backlog|
+			railgun.process(backlog.path)
+			backlog.update(runs: backlog.runs + 1)
+		end
+		railgun.teardown
+		Logger.log.info("Railgun is done! Shutting down. ビリビリ.")
 	end
 end
 
-if not ARGV.empty?
-	Logger.log.info("Processing command line files")
-	railgun.process(ARGV)
+command :process do |c|
+	c.syntax = "railgun.rb process"
+	c.description = "Manually processes files through railgun"
+	c.option "--[no-]mylist", "Adds files to mylist. Default is set in config"
+	c.option "--[no-]rename", "Renames files. Default is set in config"
+	c.option "--[no-]sort", "Rename only. Do not sort files"
+	c.option "--backlog [DATE]", "Sets a backlog to expire at date"
+	c.option "-t", "--test", "Test mode"
+	c.action do |args, cops|
+		if not cops.sort
+			options[:renamer][:animebase] = nil
+			options[:renamer][:moviebase] = nil
+		end
+
+		if cops.test
+			options[:testmode] = true
+		end
+
+		if cops.mylist
+			options[:mylist][:enabled] = cops.mylist
+		end
+
+		if cops.rename
+			options[:renamer][:enabled] = cops.sort
+		end
+
+		if cops.backlog
+			options[:backlog][:set] = Chronic.parse(cops.date)
+			unless options[:backlog][:set]
+				puts "Invaid setbacklog expire time."
+				exit
+			end
+
+			unless options[:backlog][:set] > Time.now
+				puts "Expire time can't be in the past."
+				exit
+			end
+		end
+
+		Logger.log.info("Processing command line files")
+
+		railgun.process(args)
+
+		railgun.teardown
+		Logger.log.info("Railgun is done! Shutting down. ビリビリ.")
+	end
 end
-
-# This blocks until the queues are done.
-railgun.teardown
-
-Logger.log.info("Railgun is done! Shutting down. ビリビリ.")
