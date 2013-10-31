@@ -15,8 +15,12 @@ include Biribiri
 
 # Load options from config and ARGV
 opts = Options.new
-opts.load_config(opts.load_config(APP_ROOT + "/config.yaml"))
-#opts.parse!(ARGV)
+begin 
+	opts.load_config(APP_ROOT + "/config.yaml")
+rescue Exception => e
+	puts e.message
+	exit
+end
 options = opts.options
 Logger.setup(options)
 Logger.log.info("Railgun starting up.")
