@@ -82,18 +82,21 @@ command :add do |c|
 		thash = (ENV["TR_TORRENT_HASH"] or options[0])
 		unless thash
 			Logger.log.fatal("You must pass a hash in $TR_TORRENT_HASH or as a parameter.")
+			railgun.teardown
 			exit(1)
 		end
 
 		torrent = tc.find(thash)
 		unless torrent
 			Logger.log.fatal("Torrent Hash #{thash} not found")
+			railgun.teardown
 			exit(1)
 		end
 
 		# Check if the Hash is Anime (based on path, set in config)
 		if torrent["downloadDir"].scan(/anime/).empty?
 			Logger.log.fatal("Torrent #{torrent["name"]} is not anime")
+			railgun.teardown
 			exit(1)
 		end
 

@@ -92,11 +92,13 @@ command :process do |c|
 			options[:backlog][:set] = Chronic.parse(cops.date)
 			unless options[:backlog][:set]
 				puts "Invaid setbacklog expire time."
+				railgun.teardown
 				exit
 			end
 
 			unless options[:backlog][:set] > Time.now
 				puts "Expire time can't be in the past."
+				railgun.teardown
 				exit
 			end
 		end
