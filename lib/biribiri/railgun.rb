@@ -14,7 +14,7 @@ class Biribiri::Railgun < Biribiri::Processor
 		end
 
 		if config[:mylist][:enabled]
-			@plugins << MyListAdder.new
+			@plugins << MyListAdder.new(false, false)
 		end
 
 		setup
