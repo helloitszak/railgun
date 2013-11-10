@@ -27,7 +27,7 @@ class Biribiri::MyListAdder < Biribiri::Processor::Plugin
 							Logger.log.info("[MyList] Edited #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
 						end
 					else
-						Logger.log.info("[MyList] File Exists. Configured not to edit. #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
+						Logger.log.info("[MyList] Exists. Configured not to edit. #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
 					end
 				end
 			end
