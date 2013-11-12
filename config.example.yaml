@@ -6,10 +6,20 @@ anidb:
     password: password
     nat: true
 
+# This is the settings for the core renamer plugin
+# It splits anime based on type into the specified folders.
+# You can also disable it if you want railgun to only do mylist adds
 renamer:
     animebase: /mnt/fileshare/video/Anime
     moviebase: /mnt/fileshare/video/Anime OVA
     unsorted: /mnt/fileshare/video/Anime Unsorted
+    enabled: true
+
+# This adds the files processed with railgun (either through command line or automatically)
+# To the AniDB MyList with a state of unwatched and a location of hard drive.
+# You can also disable it if you don't use MyList
+mylist: 
+    enabled: true
 
 # This is ActiveRecord syntax, supports anything he does.
 # Note that db/*.sqlite3 is excluded from git, so you should use that

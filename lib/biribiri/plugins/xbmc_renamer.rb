@@ -1,5 +1,6 @@
 require "biribiri/processor"
-class Biribiri::XbmcRenamer < Biribiri::Processor::Renamer
+class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
+	attr_accessor :animebase, :moviebase, :backlog_set
 	SPECIAL_MAP = {
 		"S" => "S",
 		"C" => "S1",
@@ -7,7 +8,72 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Renamer
 		"P" => "S3",
 		"O" => "S4"
 	}
-	def self.rename(file)
+
+
+	def initialize(animebase, moviebase)
+		@animebase = animebase
+		@moviebase = moviebase
+	end
+
+	def process(processor, file)
+		renamed_file = self.rename(file[:file])
+
+		if processor.testmode
+			Logger.log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
+		else
+			basepath = File.dirname(file[:src][:file])
+
+			if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
+				anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
+				anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
+				anime_name.gsub!(/\s+/, " ")
+				anime_name.gsub!(/^\s|\s$/, "")
+				anime_name.gsub!(/`/, "'")
+				anime_name.gsub!(/\.$/, "")
+				basepath = @animebase + "/" + anime_name
+				FileUtils.mkdir_p(basepath)
+			end
+			
+			if @moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])
+				basepath = @moviebase
+			end
+
+			finalpath = File.expand_path("#{basepath}/#{renamed_file}")
+
+			begin
+				if file[:src][:file] != finalpath
+					FileUtils.mv(file[:src][:file], finalpath)
+					Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
+				else
+					Logger.log.warn("[P] #{File.basename(file[:src][:file])} was not renamed to itself.")
+				end
+			rescue
+				Logger.log.error("[P] Could not rename #{file[:src][:file]}")
+				Logger.log.debug($!)
+			end
+
+			original_backlog = Backlog.where(path: file[:src][:file]).first
+
+			if original_backlog
+				original_backlog.path = finalpath
+				original_backlog.save
+			end
+
+			if @backlog_set
+				backlog = Backlog.where(path: finalpath).first_or_create
+				if backlog.added.nil?
+					backlog.added = DateTime.now
+				end
+
+				backlog.expire = @backlog_set
+
+				backlog.save
+				Logger.log.info("[P] Added backlog for #{renamed_file} to expire on #{@backlog_set}")
+			end
+		end
+	end
+
+	def rename(file)
 		episode_title = [file[:anime][:ep_english_name], file[:anime][:ep_romaji_name]].find {|x| not x.nil?}
 
 		# Show Title

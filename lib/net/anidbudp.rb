@@ -892,22 +892,16 @@ module Net
       reply = command('MYLISTADD', h)
       case reply.code
       when 210
-        reply.lines[0].to_i
+        [:added, reply.lines[0].to_i]
       when 310
         h = {}
         lr = reply.lines[0].split(/\|/)
         h[:lid] = lr.shift.to_i
-        MYLIST_FIELDS[1..-1].each do |k|
-          h[k] = lr.shift
-        end
-        if (h[:viewdate].to_i > 0 ? 1 : 0) != viewed.to_i ||
-           h[:state].to_i != MYLIST_STATES[state].to_i
-          -h[:lid] # Hack !
-        else
-          h[:lid]
-        end
+        [:exists, h[:lid]]
       when 311
-        nil
+        [:edited, nil]
+      when 411
+        [:notfound, nil]
       else
         nil
       end

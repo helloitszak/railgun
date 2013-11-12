@@ -5,9 +5,8 @@ New Features:
   ✔ GELF support @done (13-09-28 22:08)
   ☐ Better filename length handling (windows doesn't like over 129, but 161 file names seem to handle fine)
 Code Refactor:
-  ☐ Don't remove from database, have a "all done" flag
+  ✔ Don't remove from database, have a "all done" flag
   ☐ Write some tests
-  ☐ Create a gem version
     
 Misc Project:
   ☐ Add readme and setup guide
