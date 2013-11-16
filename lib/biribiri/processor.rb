@@ -11,7 +11,7 @@ class Biribiri::Processor
 					 :source, :sub_language, :dub_language, :video_codec,
 					 :audio_codec_list, :crc32, :state, :file_type ]
 
-	FILE_AFIELDS = [ :type, :year, :highest_episode_number, :episodes,
+	FILE_AFIELDS = [ :type, :year, :highest_episode_number,
                      :english_name, :romaji_name, :epno, :ep_english_name,
                      :ep_romaji_name, :group_name, :group_short_name ]
 
@@ -109,6 +109,7 @@ class Biribiri::Processor
 						Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
 						next
 					end
+					anime = @anidb.anime(file[:file][:aid])
 					Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
 
 					# Extract the states variable into something more sane
@@ -124,7 +125,7 @@ class Biribiri::Processor
 					version = (state_keys & [:version2, :version3, :version4, :version5]).map { |i| VERSION_MAP[i] }.max
 					file[:file][:version] = version || 1
 
-					info = {:src => src, :file => file}
+					info = {:src => src, :file => file, :anime => anime}
 					call_plugin_stack(:info, info)
 					@process_queue << info
 
