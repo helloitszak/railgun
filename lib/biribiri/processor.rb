@@ -11,6 +11,10 @@ class Biribiri::Processor
 					 :source, :sub_language, :dub_language, :video_codec,
 					 :audio_codec_list, :crc32, :state, :file_type ]
 
+	FILE_AFIELDS = [ :type, :year, :highest_episode_number, :episodes,
+                     :english_name, :romaji_name, :epno, :ep_english_name,
+                     :ep_romaji_name, :group_name, :group_short_name ]
+
 	FILE_FSTATES = {
 		:crcok      => 1,
 		:crcerr     => 2,
@@ -100,7 +104,7 @@ class Biribiri::Processor
 				break unless src
 				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
 				@mutex.synchronize do
-					file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS)
+					file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS, FILE_AFIELDS)
 					if file.nil?
 						Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
 						next

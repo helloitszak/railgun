@@ -27,7 +27,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		else
 			basepath = File.dirname(file[:src][:file])
 
-			if @animebase and not standalone?(file)
+			if @animebase and not standalone?(file[:file])
 				anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
 				anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
 				anime_name.gsub!(/\s+/, " ")
@@ -38,7 +38,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 				FileUtils.mkdir_p(basepath)
 			end
 			
-			if @moviebase and standalone?(file)
+			if @moviebase and standalone?(file[:file])
 				basepath = @moviebase
 			end
 
