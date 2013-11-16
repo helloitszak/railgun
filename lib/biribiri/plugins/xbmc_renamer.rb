@@ -9,10 +9,14 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		"O" => "S4"
 	}
 
-
 	def initialize(animebase, moviebase)
 		@animebase = animebase
 		@moviebase = moviebase
+	end
+
+
+	def standalone?(anime)
+		["Movie", "OVA"].include?(file[:file][:anime][:type]) and not file[:file][:anime][:episodes] > 1
 	end
 
 	def process(processor, file)
@@ -23,7 +27,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		else
 			basepath = File.dirname(file[:src][:file])
 
-			if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
+			if @animebase and not standalone?(file)
 				anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
 				anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
 				anime_name.gsub!(/\s+/, " ")
@@ -34,7 +38,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 				FileUtils.mkdir_p(basepath)
 			end
 			
-			if @moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])
+			if @moviebase and standalone?(file)
 				basepath = @moviebase
 			end
 
@@ -119,8 +123,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		fileinfo = [" ", group, src, cen, res, vcodec, crc] * ""
 
 		# File Name
-		fullfile = case file[:anime][:type]
-		when "Movie", "OVA"
+		if standalone?(file)
 			# Process Movie
 			[show_title, fileinfo, ".", file[:file][:file_type]] * ""
 		else
