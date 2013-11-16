@@ -16,7 +16,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 
 
 	def standalone?(anime)
-		["Movie", "OVA"].include?(anime[:anime][:type]) and not anime[:anime][:episodes] > 1
+		["Movie", "OVA"].include?(anime[:anime][:type]) and not anime[:anime][:episodes].to_i > 1
 	end
 
 	def process(processor, file)
