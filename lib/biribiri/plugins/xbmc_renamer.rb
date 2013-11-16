@@ -19,9 +19,10 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 
 		if ["Movie", "OVA"].include?(file[:file][:anime][:type])
 			processor.mutex.synchronize do
-				anime = processor.anidb.anime(file[:file][:aid])
-				if anime[:anime][:episodes].to_i > 1
-					standalone = false
+				anime = processor.anidb.anime(file[:file][:file][:aid])
+				Logger.log.debug("[P] Anime Get: #{anime}")
+				if anime[:anime][:episodes].to_i == 1
+					standalone = true
 				end
 			end
 		end
