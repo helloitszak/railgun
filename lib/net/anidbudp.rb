@@ -395,7 +395,7 @@ module Net
         @logger.proto "Authentication failed : #{replies.join("--")}"
         @autheticated = false
         @dead = true
-        raise ServerOfflineError.new("Authentication failed - unable to find SID")
+        raise ServerOfflineError.new("Authentication failed - unable to find SID #{replies.join("--")}")
       end
     end
 
