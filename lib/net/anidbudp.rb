@@ -377,6 +377,7 @@ module Net
         raise ParameterError.new("Need username and password to connect")
       end
       @sid = nil
+      replies = nil
       1.upto(3) do |x|
         replies = raw_command("AUTH",
                               :user => @user,
@@ -394,7 +395,7 @@ module Net
         @logger.proto "Authentication failed : #{replies.join("--")}"
         @autheticated = false
         @dead = true
-        raise ServerOfflineError.new("Authentication failed - unable to find SID")
+        raise ServerOfflineError.new("Authentication failed - unable to find SID #{replies.join("--")}")
       end
     end
 
