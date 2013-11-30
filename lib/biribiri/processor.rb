@@ -71,18 +71,18 @@ class Biribiri::Processor
 		@anidb.connect(@anidb_username, @anidb_password, @anidb_nat)
 
 		if @testmode
-			Logger.log.info("[#] Running in test mode. Files won't be renamed.")
+			Logger.log.info("[Core] Running in test mode. Files won't be renamed.")
 		end
 
 		@ed2k_worker = Thread.new do
 			while true
-				Logger.log.debug("[H] Waiting for next file to hash")
+				Logger.log.debug("[Hasher] Waiting for next file to hash")
 
 				# Get the next file, stopping the queue if nil is recieved.
 				file = @ed2k_queue.pop
 				break unless file
 				
-				Logger.log.debug("[H] Hashing #{File.basename(file)}")
+				Logger.log.debug("[Hasher] Hashing #{File.basename(file)}")
 				
 				size, hash = Net::AniDBUDP.ed2k_file_hash(file)
 				
@@ -90,7 +90,7 @@ class Biribiri::Processor
 				call_plugin_stack(:ed2k, info)
 				@info_queue << info
 
-				Logger.log.info("[H] #{File.basename(file)} (H: #{hash}, S: #{size})")
+				Logger.log.info("[Hasher] #{File.basename(file)} (H: #{hash}, S: #{size})")
 			end
 
 			# Tell the next processor that we're done sending it things
@@ -99,17 +99,17 @@ class Biribiri::Processor
 
 		@info_worker = Thread.new do
 			while true
-				Logger.log.debug("[I] Waiting for next file to get info")
+				Logger.log.debug("[Searcher] Waiting for next file to get info")
 				src = @info_queue.pop
 				break unless src
-				Logger.log.debug("[I] Searching #{File.basename(src[:file])}")
+				Logger.log.debug("[Searcher] Searching #{File.basename(src[:file])}")
 				@mutex.synchronize do
 					file = @anidb.search_file(File.basename(src[:file]), src[:size], src[:hash], FILE_FFIELDS, FILE_AFIELDS)
 					if file.nil?
-						Logger.log.warn("[I] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
+						Logger.log.warn("[Searcher] #{src[:file]} can't be found. ed2k://|file|#{File.basename(src[:file])}|#{src[:size]}|#{src[:hash]}|/")
 						next
 					end
-					Logger.log.info("[I] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
+					Logger.log.info("[Searcher] #{File.basename(src[:file])} => #{file[:anime][:romaji_name]} (EP: #{file[:anime][:epno]}, FID: #{file[:fid]}, AID: #{file[:file][:aid]})")
 
 					# Extract the states variable into something more sane
 					# Ryan Bates please bear my children
@@ -128,7 +128,7 @@ class Biribiri::Processor
 					call_plugin_stack(:info, info)
 					@process_queue << info
 
-					Logger.log.debug("[I] Added #{File.basename(src[:file])} to process queue")
+					Logger.log.debug("[Searcher] Added #{File.basename(src[:file])} to process queue")
 				end
 			end
 			@process_queue << nil
@@ -137,10 +137,10 @@ class Biribiri::Processor
 		@process_worker = Thread.new do
 			# All that's left is to rename or print
 			while true
-				Logger.log.debug("[P] Waiting for next file to process")
+				Logger.log.debug("[Processor] Waiting for next file to process")
 				file = @process_queue.pop
 				break unless file
-				Logger.log.debug("[P] Processing #{File.basename(file[:src][:file])}")
+				Logger.log.debug("[Processor] Processing #{File.basename(file[:src][:file])}")
 
 				call_plugin_stack(:process, file)
 			end	
@@ -154,7 +154,7 @@ class Biribiri::Processor
 		files.each do |file|
 			if File.file?(file)
 				@ed2k_queue << file
-				Logger.log.info("[F] Added #{file} to queue")
+				Logger.log.info("[Core] Added #{file} to queue")
 			end
 		end
 	end

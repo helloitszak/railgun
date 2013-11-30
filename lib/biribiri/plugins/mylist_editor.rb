@@ -12,7 +12,8 @@ class Biribiri::MyListEditor < Biribiri::Processor::Plugin
 			:storage => nil
 		}
 		@args = default_args.merge(args)
-		Logger.log.debug("[MyList] Plugin initialized. Updating files with: #{@args}")
+		Logger.log.info("[MyList] Plugin initialized. Updating files")
+		Logger.log.debug("[MyList] Args: #{@args}")
 	end
 
 	def process(processor, info)
