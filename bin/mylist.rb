@@ -37,13 +37,32 @@ end
 
 command :add do |c|
 	c.syntax = "mylist.rb add [options] <files>"
-	c.description = "Adds files to MyList"
+	c.description = "Adds files to MyList. Note: it won't update unless an modification parameter is specified."
 	c.option "--[no-]viewed", "Set whether the file is viewed or not, defaults to not."
 	c.action do |args, options|
-		options.viewed ||= false
+		edit = (not options.viewed.nil?)
 		# Setup processor to run mylist additions
 		processor = Processor.new(opts.options[:anidb], options.test)
-		processor.plugins << MyListAdder.new(options.viewed)
+		processor.plugins << MyListEditor.new(edit, :viewed => options.viewed)
+
+		processor.setup
+		processor.process(args)
+		processor.teardown
+	end
+end
+
+command :delete do |c|
+	c.syntax = "mylist.rb add [options] <files>"
+	c.description = "Updates files on MyList to deleted and optionally removes them from disk."
+	c.option "--[no-]rm", "DANGER. Deletes the files on disk."
+	c.action do |args, options|
+		# Setup processor to run mylist additions
+		processor = Processor.new(opts.options[:anidb], options.test)
+		processor.plugins << MyListEditor.new(true, :state => :deleted)
+		
+		if options.rm
+			processor.plugins << FileDeleter.new
+		end
 
 		processor.setup
 		processor.process(args)

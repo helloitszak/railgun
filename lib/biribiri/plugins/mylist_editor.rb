@@ -1,11 +1,18 @@
 require "biribiri/processor"
-class Biribiri::MyListAdder < Biribiri::Processor::Plugin
-	attr_accessor :watched
+class Biribiri::MyListEditor < Biribiri::Processor::Plugin
+	attr_accessor :args
 	attr_accessor :update
-	def initialize(watch=false, update=true)
-		@watched = watch
+	def initialize(update=true, args = {})
 		@update = update
-		Logger.log.debug("[MyList] Plugin initialized. Adding files with Watched State: #{watched.to_s}")
+		
+		default_args = {
+			:viewed => false,
+			:state => :hdd,
+			:source => nil,
+			:storage => nil
+		}
+		@args = default_args.merge(args)
+		Logger.log.debug("[MyList] Plugin initialized. Updating files with: #{@args}")
 	end
 
 	def process(processor, info)
@@ -16,14 +23,14 @@ class Biribiri::MyListAdder < Biribiri::Processor::Plugin
 			else
 				# This is bad design, but it's AniDB's API's fault.
 				# There is no obvious way to add or edit with one command.
-				result, id = processor.anidb.mylist_add(fid, false, (@watched ? 1 : 0))
+				result, id = mylist_add(processor.anidb, fid, false)
 				case result
 				when :added
 					Logger.log.info("[MyList] Added #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, LID: #{id}, FID: #{info[:file][:fid]})")
 				when :exists
 					if @update
-						er, eid = processor.anidb.mylist_add(fid, true, (@watched ? 1 : 0))
-						if er == :edited
+						edit_result, eid = mylist_add(processor.anidb, fid, true)
+						if edit_result == :edited
 							Logger.log.info("[MyList] Edited #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
 						end
 					else
@@ -32,5 +39,9 @@ class Biribiri::MyListAdder < Biribiri::Processor::Plugin
 				end
 			end
 		end
+	end
+
+	def mylist_add(anidb, fid, update)
+		anidb.mylist_add(fid, update, @args[:viewed], @args[:state], @args[:source], @args[:storage])
 	end
 end
