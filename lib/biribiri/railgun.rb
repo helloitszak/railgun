@@ -1,6 +1,6 @@
 require "biribiri/processor"
 require "biribiri/plugins/xbmc_renamer"
-require "biribiri/plugins/mylist_adder"
+require "biribiri/plugins/mylist_editor"
 
 class Biribiri::Railgun < Biribiri::Processor
 	def initialize(config)
@@ -14,7 +14,7 @@ class Biribiri::Railgun < Biribiri::Processor
 		end
 
 		if config[:mylist][:enabled]
-			@plugins << MyListAdder.new(false, false)
+			@plugins << MyListAdder.new(false, :viewed => false)
 		end
 
 		setup

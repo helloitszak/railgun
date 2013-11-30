@@ -37,13 +37,13 @@ end
 
 command :add do |c|
 	c.syntax = "mylist.rb add [options] <files>"
-	c.description = "Adds files to MyList"
+	c.description = "Adds files to MyList. Note: it won't update unless an modification parameter is specified."
 	c.option "--[no-]viewed", "Set whether the file is viewed or not, defaults to not."
 	c.action do |args, options|
-		options.viewed ||= false
+		edit = (not options.viewed.nil?)
 		# Setup processor to run mylist additions
 		processor = Processor.new(opts.options[:anidb], options.test)
-		processor.plugins << MyListAdder.new(options.viewed)
+		processor.plugins << MyListEditor.new(edit, :viewed => options.viewed)
 
 		processor.setup
 		processor.process(args)
