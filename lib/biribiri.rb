@@ -9,4 +9,6 @@ require 'biribiri/logger_ext'
 require 'biribiri/options'
 require 'biribiri/processor'
 require 'biribiri/railgun'
-
+require 'biribiri/plugins/xbmc_renamer'
+require 'biribiri/plugins/mylist_editor'
+require 'biribiri/plugins/file_deleter'

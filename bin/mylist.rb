@@ -50,3 +50,22 @@ command :add do |c|
 		processor.teardown
 	end
 end
+
+command :delete do |c|
+	c.syntax = "mylist.rb add [options] <files>"
+	c.description = "Updates files on MyList to deleted and optionally removes them from disk."
+	c.option "--[no-]rm", "DANGER. Deletes the files on disk."
+	c.action do |args, options|
+		# Setup processor to run mylist additions
+		processor = Processor.new(opts.options[:anidb], options.test)
+		processor.plugins << MyListEditor.new(true, :state => :deleted)
+		
+		if options.rm
+			processor.plugins << FileDeleter.new
+		end
+
+		processor.setup
+		processor.process(args)
+		processor.teardown
+	end
+end
