@@ -11,7 +11,7 @@ class Biribiri::MyListPurger < Biribiri::Processor::Plugin
 			if processor.testmode
 				Logger.log.info("[MyList] Would purge #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
 			else
-				result = anidb.mylist_del_by_fid(fid)
+				result = processor.anidb.mylist_del_by_fid(fid)
 				if result
 					Logger.log.info("[MyList] Purged #{info[:file][:anime][:romaji_name]} (EP: #{info[:file][:anime][:epno]}, FID: #{info[:file][:fid]})")
 				else
