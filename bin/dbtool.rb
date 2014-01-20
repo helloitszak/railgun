@@ -52,7 +52,7 @@ command :list do |c|
 		end
 		puts Terminal::Table.new(
 			:title => "Backlog", 
-			:headings => ["ID", "Path", "Added", "Expires", "Runs"], 
+			:headings => ["ID", "Path", "Expires", "Added", "Runs"], 
 			:rows => backlog_rows)
 
 		puts "\n\n"
