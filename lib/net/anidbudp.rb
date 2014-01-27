@@ -331,7 +331,7 @@ module Net
 
     def connect(user = nil, pass = nil, nat = false)
       raise ServerOfflineError.new("Trying to send a command to a dead server") if @dead
-      @sock = UDPSocket.new()
+      @sock = UDPSocket.new
       @sock.bind(0, @localport)
       @sock.connect(@host, @port)
       @connected = true
@@ -340,7 +340,7 @@ module Net
       @pass = pass if pass
     end
 
-    def disconnect()
+    def disconnect
       @sock.shutdown if @connected
       @connected = false
       @sock = nil
@@ -358,7 +358,7 @@ module Net
       @dead
     end
 
-    def keep_alive()
+    def keep_alive
       if @connected && (Time.now - @last_activity) > 120
         uptime
       end
@@ -403,6 +403,7 @@ module Net
         raise ParameterError.new("Need username and password to connect")
       end
       @sid = nil
+      replies = nil
       1.upto(3) do |x|
         replies = raw_command("AUTH",
                               :user => @user,
@@ -420,7 +421,7 @@ module Net
         @logger.proto "Authentication failed : #{replies.join("--")}"
         @autheticated = false
         @dead = true
-        raise ServerOfflineError.new("Authentication failed - unable to find SID")
+        raise ServerOfflineError.new("Authentication failed - unable to find SID #{replies.join("--")}")
       end
     end
 
@@ -616,7 +617,7 @@ module Net
     #   {int4 fid 1}|{int4 fid 2}|...|{int4 fid n}
     # 311 MYLIST ENTRY EDITED
     # 411 NO SUCH MYLIST ENTRY
-    def mylist_add(fid, edit = false, viewed = 0, state = :hdd, source = nil, storage = nil)
+    def mylist_add(fid, edit = false, viewed = false, state = :hdd, source = nil, storage = nil)
       return unless(fid && fid.to_i != 0)
       reply = mylist_add_any(:fid, [ fid ], edit, viewed, state, source, storage)
     end
@@ -631,7 +632,7 @@ module Net
     #  [&storage={str storage}]
     #  [&other={str other}]
     #  [&edit={boolean edit}]
-    def mylist_add_by_ed2k(size, ed2k, edit = false, viewed = 0, state = :hdd, source = nil, storage = nil)
+    def mylist_add_by_ed2k(size, ed2k, edit = false, viewed = false, state = :hdd, source = nil, storage = nil)
       return unless(size && ed2k && size.to_i != 0 && ed2k.strip != '')
       reply = mylist_add_any(:ed2k, [ size, ed2k ], edit, viewed, state, source, storage)
     end
@@ -685,7 +686,7 @@ module Net
     #
     # 203 LOGGED OUT
     # 403 NOT LOGGED IN
-    def logout()
+    def logout
       if @sid
         raw_command('LOGOUT')
         @logger.proto "Logged out."
@@ -901,9 +902,10 @@ module Net
       end }  
     end  
 
-    def mylist_add_any(type, pars, edit = false, viewed = 0, state = :hdd, source = nil, storage = nil)
+    def mylist_add_any(type, pars, edit = false, viewed = nil, state = nil, source = nil, storage = nil)
+      state = MYLIST_STATES[state] if state
       h = { :viewed => viewed,
-            :state => MYLIST_STATES[state],
+            :state => state,
             :source => source,
             :storage => storage,
             :edit => edit }
@@ -1036,7 +1038,7 @@ module Net
       @last_activity = Time.now
     end
 
-    def recv()
+    def recv
       fmsg, send = @sock.recvfrom(1400)
       @sock.flush
       @last_activity = Time.now

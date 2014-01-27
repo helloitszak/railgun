@@ -9,21 +9,35 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		"O" => "S4"
 	}
 
-
 	def initialize(animebase, moviebase)
 		@animebase = animebase
 		@moviebase = moviebase
+		Logger.log.info("[XbmcRenamer] Plugin initialized. Renaming files")
 	end
 
 	def process(processor, file)
-		renamed_file = self.rename(file[:file])
+		standalone = false
+
+		if ["Movie", "OVA"].include?(file[:file][:anime][:type])
+			processor.mutex.synchronize do
+				anime = processor.anidb.anime(file[:file][:file][:aid])
+				Logger.log.debug("[XbmcRenamer] Anime Get: #{anime}")
+				if anime[:anime][:episodes].to_i == 1
+					standalone = true
+				end
+			end
+		end
+
+		Logger.log.debug("[XbmcRenamer] Standalone Status: #{standalone}")
+
+		renamed_file = self.rename(file[:file], standalone)
 
 		if processor.testmode
-			Logger.log.info("[P] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
+			Logger.log.info("[XbmcRenamer] Would rename #{File.basename(file[:src][:file])} to #{renamed_file}")
 		else
 			basepath = File.dirname(file[:src][:file])
 
-			if @animebase and not ["Movie", "OVA"].include?(file[:file][:anime][:type])
+			if @animebase and not standalone
 				anime_name = [file[:file][:anime][:romaji_name], file[:file][:anime][:english_name]].find {|x| not x.nil?}
 				anime_name.gsub!(/[\\\":\/*|<>?]/, " ")
 				anime_name.gsub!(/\s+/, " ")
@@ -34,7 +48,7 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 				FileUtils.mkdir_p(basepath)
 			end
 			
-			if @moviebase and ["Movie", "OVA"].include?(file[:file][:anime][:type])
+			if @moviebase and standalone
 				basepath = @moviebase
 			end
 
@@ -43,12 +57,12 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 			begin
 				if file[:src][:file] != finalpath
 					FileUtils.mv(file[:src][:file], finalpath)
-					Logger.log.info("[P] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
+					Logger.log.info("[XbmcRenamer] Renamed #{File.basename(file[:src][:file])} to #{basepath}/#{renamed_file}")
 				else
-					Logger.log.warn("[P] #{File.basename(file[:src][:file])} was not renamed to itself.")
+					Logger.log.warn("[XbmcRenamer] #{File.basename(file[:src][:file])} was not renamed to itself.")
 				end
 			rescue
-				Logger.log.error("[P] Could not rename #{file[:src][:file]}")
+				Logger.log.error("[XbmcRenamer] Could not rename #{file[:src][:file]}")
 				Logger.log.debug($!)
 			end
 
@@ -68,12 +82,12 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 				backlog.expire = @backlog_set
 
 				backlog.save
-				Logger.log.info("[P] Added backlog for #{renamed_file} to expire on #{@backlog_set}")
+				Logger.log.info("[XbmcRenamer] Added backlog for #{renamed_file} to expire on #{@backlog_set}")
 			end
 		end
 	end
 
-	def rename(file)
+	def rename(file, standalone)
 		episode_title = [file[:anime][:ep_english_name], file[:anime][:ep_romaji_name]].find {|x| not x.nil?}
 
 		# Show Title
@@ -119,15 +133,12 @@ class Biribiri::XbmcRenamer < Biribiri::Processor::Plugin
 		fileinfo = [" ", group, src, cen, res, vcodec, crc] * ""
 
 		# File Name
-		fullfile = case file[:anime][:type]
-		when "Movie", "OVA"
+		if standalone
 			# Process Movie
-			[show_title, fileinfo, ".", file[:file][:file_type]] * ""
+			return [show_title, fileinfo, ".", file[:file][:file_type]] * ""
 		else
 			# Process episodic
-			[show_title, fullepno, episode_title, fileinfo, ".", file[:file][:file_type]] * ""
+			return [show_title, fullepno, episode_title, fileinfo, ".", file[:file][:file_type]] * ""
 		end
-
-		fullfile
 	end
 end

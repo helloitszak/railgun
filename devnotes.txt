@@ -1,0 +1,40 @@
+This file contains some development brain bits, 
+feel free to use them when contributing!
+
+Here is the info hash the processor passes to plugins:
+{:src=>
+  {:size=>236059319,
+   :hash=>"40427e59d278896ad69388fc2f40f331",
+   :file=>"/Users/ubercow/Desktop/test.mkv"},
+ :file=>
+  {:file=>
+    {:aid=>"8160",
+     :eid=>"133610",
+     :gid=>"8931",
+     :state=>"1",
+     :crc32=>"466070ed",
+     :quality=>"very high",
+     :source=>"Blu-ray",
+     :audio_codec_list=>"FLAC",
+     :video_codec=>"H264/AVC",
+     :video_resolution=>"1920x1080",
+     :file_type=>"mkv",
+     :dub_language=>"japanese",
+     :sub_language=>"english",
+     :length=>"90",
+     :state_keys=>[:crcok],
+     :crcstatus=>:crcok,
+     :censoredstatus=>nil,
+     :version=>1},
+   :anime=>
+    {:highest_episode_number=>"13",
+     :year=>"2011-2011",
+     :type=>"TV Series",
+     :romaji_name=>"Fate/Zero",
+     :english_name=>"",
+     :epno=>"C1",
+     :ep_english_name=>"Opening",
+     :ep_romaji_name=>"",
+     :group_name=>"Unlimited Translation Works",
+     :group_short_name=>"UTW"},
+   :fid=>1058188}}
